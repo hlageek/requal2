@@ -72,6 +72,7 @@ app_server <- function(input, output, session) {
   mod_browser_server("browser_ui_1", glob)
   mod_summary_server("summary_ui_1", glob)
 
+  mod_extensions_server("extensions_ui_1", glob)
   # user
   mod_user_server("user_ui_1", glob)
 
