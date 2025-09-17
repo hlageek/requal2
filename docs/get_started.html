@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.33">
+<meta name="generator" content="quarto-1.8.24">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -35,14 +35,15 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/cookie-consent/cookie-consent.css" rel="stylesheet">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-ea385d0e468b0dd5ea5bf0780b1290d9.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-6306a28d8eab1f3c1d1ab58747d9c25e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-2890eba573baac25c3e9f0f9d94fc55f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -110,7 +111,8 @@ cookieconsent.run({
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./img/rql_logo.png" alt="" class="navbar-logo">
+    <img src="./img/rql_logo.png" alt="" class="navbar-logo light-content">
+    <img src="./img/rql_logo.png" alt="" class="navbar-logo dark-content">
     </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">requal</span>
@@ -218,7 +220,7 @@ password: requal123</code></pre>
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Tip for adventurous macOS users
+<span class="screen-reader-only">Tip</span>Tip for adventurous macOS users
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -235,7 +237,9 @@ Tip for adventurous macOS users
 <section id="desktop-version" class="level3">
 <h3 class="anchored" data-anchor-id="desktop-version">Desktop version</h3>
 <p>To use Requal, you need to have the R language installed and running on your machine. You can download and install R from <a href="https://cloud.r-project.org">here</a>. You will also need a web browser with JavaScript support (i.e.&nbsp;any of the standard issue browsers like Firefox, Chrome, or Safari).</p>
-<p>You can install Requal from GitHub by following these steps (assuming you have R installed on your machine):</p>
+<p>Simply install the latest release of the <code>requal</code> package from <a href="https://re-qda.r-universe.dev/requal">R-Universe</a> repository by copying and pasting the following single-line command into the R console:</p>
+<pre><code>install.packages("requal", repos = c("https://re-qda.r-universe.dev", "https://cloud.r-project.org"))</code></pre>
+<p>Alternatively, you can install a Requal release from GitHub by following these steps (assuming you have R installed on your machine):</p>
 <ol type="1">
 <li>Download the current release of Requal from <a href="https://github.com/RE-QDA/requal/releases">Releases</a>. The installation file is in the <code>requal_&lt;VERSION_NUMBER&gt;.tar.gz</code> format.</li>
 <li>Open the R console and install the <code>remotes</code> package by running <code>install.packages("remotes")</code> command.</li>
@@ -243,7 +247,7 @@ Tip for adventurous macOS users
 </ol>
 <section id="usage-desktop" class="level4">
 <h4 class="anchored" data-anchor-id="usage-desktop">Usage (desktop)</h4>
-<p>After installation, the Requal app can be launched from the R console with the following command:</p>
+<p><strong>After installation</strong>, Requal can be launched from the R console with the following command:</p>
 <pre><code>requal::run_app()</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -256,9 +260,8 @@ Tip for adventurous macOS users
 <section id="development-version" class="level3">
 <h3 class="anchored" data-anchor-id="development-version">Development version</h3>
 <p>The development version contains the latest features, but might be less stable than a released version.</p>
-<p>You can install the development version of Requal from GitHub by running this code in R:</p>
-<pre><code>install.packages("remotes")
-remotes::install_github("RE-QDA/requal")</code></pre>
+<p>To access the latest features, you can install the development version of Requal from the developer’s <a href="https://hlageek.r-universe.dev/requal">R-Universe</a> repository by running this code in R:</p>
+<pre><code>install.packages("requal", repos = c("https://hlageek.r-universe.dev", "https://cloud.r-project.org"))</code></pre>
 <p>Usage is the same as in the server and desktop versions.</p>
 
 
@@ -317,13 +320,14 @@ remotes::install_github("RE-QDA/requal")</code></pre>
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
@@ -338,7 +342,7 @@ remotes::install_github("RE-QDA/requal")</code></pre>
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/requal\.app");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
