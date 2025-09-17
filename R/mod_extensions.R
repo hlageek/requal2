@@ -24,18 +24,14 @@ mod_extensions_ui <- function(id) {
 #' extensions Server Functions
 #'
 #' @noRd
-mod_extensions_server <- function(id, glob) {
+mod_extensions_server <- function(id, api) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
-    # remotes::install_local("/Volumes/CardDisk/repos_backup/rql.wordcloud_0.0.0.9000.tar.gz")
-
-    # Reactive value to store extensions
+    observe(print(api))
     extensions_data <- reactiveValues(
       available = NULL,
       launched = FALSE
     )
-
     # Get available extensions when button is clicked
     observeEvent(input$launch_extensions, {
       print("Launch Extensions button clicked")
@@ -61,7 +57,7 @@ mod_extensions_server <- function(id, glob) {
     # Render UI when extensions are launched
     output$extensions <- renderUI({
       if (length(extensions_data$available) == 0) {
-        return(p("No extension modules found."))
+        return(p("Check for available extensions."))
       }
 
       # Create UI for each extension
@@ -125,9 +121,7 @@ mod_extensions_server <- function(id, glob) {
                 # Call the server function with proper namespaced ID
                 server_func(
                   extension_id,
-                  con = glob$pool,
-                  user_id = as.integer(glob$user$user_id),
-                  project_id = as.integer(glob$active_project)
+                  api = api
                 )
               } else {
                 print(paste("mod_server is not a function in", ext))

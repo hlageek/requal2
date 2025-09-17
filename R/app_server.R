@@ -36,6 +36,15 @@ app_server <- function(input, output, session) {
     shinyjs::show(selector = "div.tab-content")
     glob$users_observer <- 0
     glob$segments_observer <- 0
+    # Launch user-project-specific RequalAPI
+    mod_extensions_server(
+      "extensions_ui_1",
+      api = RequalAPI$new(
+        con = req(glob$pool),
+        user_id = req(glob$user$user_id),
+        project_id = req(glob$active_project)
+      )
+    )
   })
 
   # Project  ----
@@ -72,7 +81,6 @@ app_server <- function(input, output, session) {
   mod_browser_server("browser_ui_1", glob)
   mod_summary_server("summary_ui_1", glob)
 
-  mod_extensions_server("extensions_ui_1", glob)
   # user
   mod_user_server("user_ui_1", glob)
 
