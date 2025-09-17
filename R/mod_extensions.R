@@ -12,7 +12,7 @@ mod_extensions_ui <- function(id) {
   tagList(
     actionButton(
       ns("launch_extensions"),
-      "Launch Extensions",
+      "Launch",
       class = "btn-primary"
     ),
     br(),
@@ -27,6 +27,8 @@ mod_extensions_ui <- function(id) {
 mod_extensions_server <- function(id, glob) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    # remotes::install_local("/Volumes/CardDisk/repos_backup/rql.wordcloud_0.0.0.9000.tar.gz")
 
     # Reactive value to store extensions
     extensions_data <- reactiveValues(
@@ -58,38 +60,30 @@ mod_extensions_server <- function(id, glob) {
 
     # Render UI when extensions are launched
     output$extensions <- renderUI({
-      if (!extensions_data$launched || is.null(extensions_data$available)) {
-        return(p("Click 'Launch Extensions' to load available extensions"))
-      }
-
       if (length(extensions_data$available) == 0) {
-        return(p("No extensions found that depend on 'requal'"))
+        return(p("No extension modules found."))
       }
-
-      print("Rendering extension UIs...")
 
       # Create UI for each extension
       ui_elements <- list()
 
       for (ext in extensions_data$available) {
-        print(paste("Processing extension:", ext))
+        extension_id <- paste0("ext_", ext)
 
         tryCatch(
           {
             if (requireNamespace(ext, quietly = TRUE)) {
               # Using eval and parse for dynamic namespace calls
               ui_call <- paste0(ext, "::mod_ui")
-              print(paste("Calling:", ui_call))
-
               ui_func <- eval(parse(text = ui_call))
 
               if (is.function(ui_func)) {
-                extension_id <- paste0("ext_", ext)
-                print(paste("Creating UI for extension with ID:", extension_id))
-
                 ui_elements[[ext]] <- div(
                   h4(paste("Extension:", ext)),
                   ui_func(ns(extension_id))
+                )
+                showNotification(
+                  paste("Loading:", ext)
                 )
               } else {
                 print(paste("mod_ui is not a function in", ext))
@@ -109,7 +103,6 @@ mod_extensions_server <- function(id, glob) {
       }
 
       if (length(ui_elements) > 0) {
-        print(paste("Created", length(ui_elements), "UI elements"))
         do.call(tagList, ui_elements)
       } else {
         p("No valid extension UIs found")
@@ -118,32 +111,24 @@ mod_extensions_server <- function(id, glob) {
 
     # Initialize server functions when extensions are launched
     observeEvent(extensions_data$launched, {
-      if (!extensions_data$launched || is.null(extensions_data$available)) {
-        return()
-      }
-
-      print("Initializing extension servers...")
+      req(extensions_data$available)
 
       for (ext in extensions_data$available) {
-        print(paste("Processing server for extension:", ext))
-
         tryCatch(
           {
             if (requireNamespace(ext, quietly = TRUE)) {
               server_call <- paste0(ext, "::mod_server")
-              print(paste("Calling:", server_call))
-
               server_func <- eval(parse(text = server_call))
 
               if (is.function(server_func)) {
                 extension_id <- paste0("ext_", ext)
-                print(paste(
-                  "Calling server function for extension with ID:",
-                  extension_id
-                ))
-
                 # Call the server function with proper namespaced ID
-                server_func(extension_id, glob)
+                server_func(
+                  extension_id,
+                  con = glob$pool,
+                  user_id = as.integer(glob$user$user_id),
+                  project_id = as.integer(glob$active_project)
+                )
               } else {
                 print(paste("mod_server is not a function in", ext))
               }
