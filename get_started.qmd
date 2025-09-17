@@ -43,7 +43,7 @@ To use Requal, you need to have the R language installed and running on your mac
 
 Simply install the latest release of the `requal` package from [R-Universe](https://re-qda.r-universe.dev/requal) repository by copying and pasting the following single-line command into the R console:
 
-```
+```{.r .copy}
 install.packages("requal", repos = c("https://re-qda.r-universe.dev", "https://cloud.r-project.org"))
 ```
 
@@ -58,7 +58,7 @@ Alternatively, you can install a Requal release from GitHub by following these s
 
 **After installation**, Requal can be launched from the R console with the following command:
 
-```
+```{.r .copy}
 requal::run_app()
 ```
 
@@ -71,7 +71,7 @@ The development version contains the latest features, but might be less stable t
 
 To access the latest features, you can install the development version of Requal from the developer's [R-Universe](https://hlageek.r-universe.dev/requal) repository by running this code in R:
 
-```
+```{.r .copy}
 install.packages("requal", repos = c("https://hlageek.r-universe.dev", "https://cloud.r-project.org"))
 ```
 

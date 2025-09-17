@@ -22,7 +22,15 @@ pre {
     background-color:rgb(233, 242, 248);
 }
 
+.sourceCode {
+    padding: 0.5rem;
+    background-color:rgb(233, 242, 248);
+    overflow-x: scroll;
+}
+
+
 .mastodon-verification {
     visibility: hidden;
 }
+
 
