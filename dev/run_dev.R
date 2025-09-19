@@ -4,10 +4,10 @@ options(golem.app.prod = FALSE) # TRUE = production mode, FALSE = development mo
 # Detach all loaded packages and clean your environment
 golem::detach_all_attached()
 # rm(list=ls(all.names = TRUE))
-renv::install(
-  "/Volumes/CardDisk/repos_backup/rql.wordcloud_0.0.0.9000.tar.gz",
-  prompt = F
-)
+# renv::install(
+#   "/Volumes/CardDisk/repos_backup/rql.wordcloud_0.0.0.9000.tar.gz",
+#   prompt = F
+# )
 # Document and reload your package
 golem::document_and_reload()
 

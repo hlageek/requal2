@@ -10,14 +10,23 @@
 mod_extensions_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    actionButton(
-      ns("launch_extensions"),
-      "Launch",
-      class = "btn-primary"
-    ),
-    br(),
-    br(),
-    uiOutput(ns("extensions"))
+    tabsetPanel(
+      type = "tabs",
+      id = ns("extensions_tabset"),
+      tabPanel(
+        "Modules manager",
+        id = ns("extensions_manager"),
+        value = "extensions_manager",
+        actionButton(
+          ns("launch_extensions"),
+          "Launch",
+          class = "btn-primary"
+        ),
+        br(),
+        br(),
+        uiOutput(ns("extensions"))
+      )
+    )
   )
 }
 
