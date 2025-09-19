@@ -24,8 +24,10 @@ mod_extensions_ui <- function(id) {
         ),
         br(),
         br(),
-        uiOutput(ns("extensions"))
+        # Add a placeholder for status
+        uiOutput(ns("status_message"))
       )
+      # Extensions will be dynamically added here via updateTabsetPanel
     )
   )
 }
@@ -37,10 +39,29 @@ mod_extensions_server <- function(id, api) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     observe(print(api))
+
     extensions_data <- reactiveValues(
       available = NULL,
       launched = FALSE
     )
+
+    # Status message output
+    output$status_message <- renderUI({
+      if (!extensions_data$launched) {
+        p("Click 'Launch' to load available extensions.")
+      } else if (length(extensions_data$available) == 0) {
+        p(
+          "No extensions found that depend on 'requal'",
+          style = "color: orange;"
+        )
+      } else {
+        p(
+          paste("Loaded", length(extensions_data$available), "extension(s)"),
+          style = "color: green;"
+        )
+      }
+    })
+
     # Get available extensions when button is clicked
     observeEvent(input$launch_extensions, {
       print("Launch Extensions button clicked")
@@ -57,21 +78,11 @@ mod_extensions_server <- function(id, api) {
           "No extensions found that depend on 'requal'",
           type = "warning"
         )
+        extensions_data$launched <- TRUE
         return()
       }
 
-      extensions_data$launched <- TRUE
-    })
-
-    # Render UI when extensions are launched
-    output$extensions <- renderUI({
-      if (length(extensions_data$available) == 0) {
-        return(p("Check for available extensions."))
-      }
-
-      # Create UI for each extension
-      ui_elements <- list()
-
+      # Add tabs for each extension
       for (ext in extensions_data$available) {
         extension_id <- paste0("ext_", ext)
 
@@ -83,40 +94,54 @@ mod_extensions_server <- function(id, api) {
               ui_func <- eval(parse(text = ui_call))
 
               if (is.function(ui_func)) {
-                ui_elements[[ext]] <- div(
-                  h4(paste("Extension:", ext)),
-                  ui_func(ns(extension_id))
+                # Add the tab to the existing tabsetPanel
+                appendTab(
+                  inputId = "extensions_tabset",
+                  tab = tabPanel(
+                    title = tagList(icon("puzzle-piece"), ext),
+                    value = paste0(ext, "_tab"),
+                    h4(packageDescription(ext)$Title),
+                    ui_func(ns(extension_id))
+                  ),
+                  session = session
                 )
+
                 showNotification(
-                  paste("Loading:", ext)
+                  paste("Loaded extension:", ext),
+                  type = "message"
                 )
               } else {
                 print(paste("mod_ui is not a function in", ext))
+                showNotification(
+                  paste("Error: mod_ui not found in", ext),
+                  type = "error"
+                )
               }
             } else {
               print(paste("Could not load namespace for", ext))
+              showNotification(
+                paste("Could not load extension:", ext),
+                type = "error"
+              )
             }
           },
           error = function(e) {
             print(paste("Error loading UI for", ext, ":", e$message))
-            ui_elements[[ext]] <- div(
-              h4(paste("Extension:", ext)),
-              p(paste("Error loading:", e$message), style = "color: red;")
+            showNotification(
+              paste("Error loading", ext, ":", e$message),
+              type = "error"
             )
           }
         )
       }
 
-      if (length(ui_elements) > 0) {
-        do.call(tagList, ui_elements)
-      } else {
-        p("No valid extension UIs found")
-      }
+      extensions_data$launched <- TRUE
     })
 
     # Initialize server functions when extensions are launched
     observeEvent(extensions_data$launched, {
       req(extensions_data$available)
+      req(length(extensions_data$available) > 0)
 
       for (ext in extensions_data$available) {
         tryCatch(
@@ -132,6 +157,7 @@ mod_extensions_server <- function(id, api) {
                   extension_id,
                   api = api
                 )
+                print(paste("Server function initialized for", ext))
               } else {
                 print(paste("mod_server is not a function in", ext))
               }
