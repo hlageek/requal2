@@ -80,36 +80,91 @@ mod_extensions_server <- function(id, api) {
 
       # Create cards for each extension
       cards <- lapply(extensions_data$available, function(ext) {
+        # Get package description info
+        pkg_info <- tryCatch(
+          {
+            desc <- packageDescription(ext)
+            list(
+              title = if (!is.null(desc$Title) && desc$Title != "NA") {
+                desc$Title
+              } else {
+                ext
+              },
+              description = if (
+                !is.null(desc$Description) && desc$Description != "NA"
+              ) {
+                desc$Description
+              } else {
+                "Extension package for requal"
+              },
+              author = if (!is.null(desc$Author) && desc$Author != "NA") {
+                desc$Author
+              } else {
+                "Unknown"
+              },
+              version = if (!is.null(desc$Version) && desc$Version != "NA") {
+                desc$Version
+              } else {
+                "Unknown"
+              }
+            )
+          },
+          error = function(e) {
+            list(
+              title = ext,
+              description = "Extension package for requal",
+              author = "Unknown",
+              version = "Unknown"
+            )
+          }
+        )
+
         div(
-          class = "col-md-4 col-sm-6",
-          style = "margin-bottom: 15px;",
+          class = "col-md-4 col-sm-6 mb-3",
           div(
-            class = "card",
-            style = "height: 200px;",
+            class = "card h-100",
             div(
               class = "card-body d-flex flex-column",
               h5(
                 class = "card-title",
-                tagList(icon("puzzle-piece"), " ", ext)
+                tagList(icon("puzzle-piece"), " ", pkg_info$title)
+              ),
+              h6(
+                class = "card-subtitle mb-2 text-muted",
+                paste("Package:", ext)
               ),
               p(
-                class = "card-text flex-grow-1",
-                style = "color: #666; font-size: 0.9em;",
-                "Extension package for requal"
+                class = "card-text flex-fill",
+                # Truncate long descriptions
+                if (nchar(pkg_info$description) > 120) {
+                  paste0(substr(pkg_info$description, 1, 117), "...")
+                } else {
+                  pkg_info$description
+                }
               ),
-              div(
-                class = "mt-auto",
-                actionButton(
-                  ns(paste0("launch_", ext)),
-                  "Launch",
-                  class = "btn-primary btn-sm",
-                  onclick = paste0(
-                    "Shiny.setInputValue('",
-                    ns("launch_extension"),
-                    "', '",
-                    ext,
-                    "', {priority: 'event'});"
-                  )
+              p(
+                class = "text-muted mb-2 small",
+                paste(
+                  "Version:",
+                  pkg_info$version,
+                  "| Author:",
+                  if (nchar(pkg_info$author) > 30) {
+                    paste0(substr(pkg_info$author, 1, 27), "...")
+                  } else {
+                    pkg_info$author
+                  }
+                )
+              ),
+              actionButton(
+                ns(paste0("launch_", ext)),
+                "Launch",
+                class = "btn-primary btn-sm mt-auto",
+                onclick = paste0(
+                  "Shiny.setInputValue('",
+                  ns("launch_extension"),
+                  "', '",
+                  ext,
+                  "', {priority: 'event'});"
                 )
               )
             )
