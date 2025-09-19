@@ -22,6 +22,7 @@ mod_extensions_ui <- function(id) {
             12,
             h4("Available Extensions"),
             div(
+              id = ns("search_container"),
               class = "mb-3",
               textInput(
                 ns("search_extensions"),
@@ -49,7 +50,7 @@ mod_extensions_server <- function(id, api) {
 
     extensions_data <- reactiveValues(
       available = NULL,
-      launched = FALSE
+      launched = c() # Track which extensions are launched
     )
 
     # Auto-discover extensions on module load
@@ -60,6 +61,13 @@ mod_extensions_server <- function(id, api) {
           "Auto-discovered extensions:",
           paste(extensions_data$available, collapse = ", ")
         ))
+      }
+
+      # Show/hide search input based on available extensions
+      if (length(extensions_data$available) > 0) {
+        shinyjs::show("search_container")
+      } else {
+        shinyjs::hide("search_container")
       }
     })
 
@@ -80,10 +88,38 @@ mod_extensions_server <- function(id, api) {
 
       if (length(extensions_data$available) == 0) {
         return(div(
-          style = "text-align: center; padding: 40px; color: #999;",
-          icon("info-circle", style = "font-size: 48px; margin-bottom: 10px;"),
-          br(),
-          "No extensions found that depend on 'requal'"
+          class = "text-center",
+          style = "padding: 60px 20px;",
+          div(
+            icon(
+              "puzzle-piece",
+              style = "font-size: 64px; color: #ccc; margin-bottom: 20px;"
+            )
+          ),
+          h4(
+            "No Extensions Found",
+            style = "color: #666; margin-bottom: 15px;"
+          ),
+          p(
+            "No extension packages were found that depend on 'requal'.",
+            style = "color: #888; margin-bottom: 25px; font-size: 16px;"
+          ),
+          p(
+            "Visit ",
+            tags$a(
+              href = "https://www.requal.app",
+              target = "_blank",
+              "www.requal.app"
+            ),
+            " to learn more about available extensions and installation instructions.",
+            style = "color: #666; margin-bottom: 20px;"
+          ),
+          actionButton(
+            ns("refresh_extensions"),
+            "Refresh",
+            class = "btn-outline-primary",
+            icon = icon("refresh")
+          )
         ))
       }
 
@@ -169,6 +205,9 @@ mod_extensions_server <- function(id, api) {
           }
         )
 
+        # Check if extension is launched
+        is_launched <- ext %in% extensions_data$launched
+
         div(
           class = "col-md-4 col-sm-6 mb-3",
           div(
@@ -205,18 +244,51 @@ mod_extensions_server <- function(id, api) {
                   }
                 )
               ),
-              actionButton(
-                ns(paste0("launch_", ext)),
-                "Launch",
-                class = "btn-primary btn-sm mt-auto",
-                onclick = paste0(
-                  "Shiny.setInputValue('",
-                  ns("launch_extension"),
-                  "', '",
-                  ext,
-                  "', {priority: 'event'});"
+              if (is_launched) {
+                div(
+                  class = "mt-auto",
+                  div(
+                    class = "btn-group w-100",
+                    actionButton(
+                      ns(paste0("goto_", ext)),
+                      "Go to",
+                      class = "btn-success btn-sm",
+                      onclick = paste0(
+                        "Shiny.setInputValue('",
+                        ns("goto_extension"),
+                        "', '",
+                        ext,
+                        "', {priority: 'event'});"
+                      )
+                    ),
+                    actionButton(
+                      ns(paste0("close_", ext)),
+                      "Close",
+                      class = "btn-outline-danger btn-sm",
+                      onclick = paste0(
+                        "Shiny.setInputValue('",
+                        ns("close_extension"),
+                        "', '",
+                        ext,
+                        "', {priority: 'event'});"
+                      )
+                    )
+                  )
                 )
-              )
+              } else {
+                actionButton(
+                  ns(paste0("launch_", ext)),
+                  "Launch",
+                  class = "btn-primary btn-sm mt-auto",
+                  onclick = paste0(
+                    "Shiny.setInputValue('",
+                    ns("launch_extension"),
+                    "', '",
+                    ext,
+                    "', {priority: 'event'});"
+                  )
+                )
+              }
             )
           )
         )
@@ -254,6 +326,9 @@ mod_extensions_server <- function(id, api) {
                 session = session
               )
 
+              # Add to launched extensions
+              extensions_data$launched <- c(extensions_data$launched, ext)
+
               showNotification(
                 paste("Loaded extension:", ext),
                 type = "message"
@@ -286,6 +361,61 @@ mod_extensions_server <- function(id, api) {
           print(paste("Error loading extension", ext, ":", e$message))
           showNotification(
             paste("Error loading", ext, ":", e$message),
+            type = "error"
+          )
+        }
+      )
+    })
+
+    # Handle goto extension events
+    observeEvent(input$goto_extension, {
+      ext <- input$goto_extension
+      updateTabsetPanel(
+        session,
+        "extensions_tabset",
+        selected = paste0(ext, "_tab")
+      )
+    })
+
+    # Handle refresh extensions
+    observeEvent(input$refresh_extensions, {
+      extensions_data$available <- NULL # Reset to trigger re-discovery
+      showNotification("Checking for extensions...", type = "message")
+    })
+    observeEvent(input$close_extension, {
+      ext <- input$close_extension
+      print(paste("Closing extension:", ext))
+
+      tryCatch(
+        {
+          # Remove the tab
+          removeTab(
+            inputId = "extensions_tabset",
+            target = paste0(ext, "_tab"),
+            session = session
+          )
+
+          # Remove from launched extensions
+          extensions_data$launched <- extensions_data$launched[
+            extensions_data$launched != ext
+          ]
+
+          showNotification(
+            paste("Closed extension:", ext),
+            type = "message"
+          )
+
+          # Switch back to modules manager tab
+          updateTabsetPanel(
+            session,
+            "extensions_tabset",
+            selected = "extensions_manager"
+          )
+        },
+        error = function(e) {
+          print(paste("Error closing extension", ext, ":", e$message))
+          showNotification(
+            paste("Error closing", ext, ":", e$message),
             type = "error"
           )
         }
