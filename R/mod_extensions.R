@@ -21,6 +21,15 @@ mod_extensions_ui <- function(id) {
           column(
             12,
             h4("Available Extensions"),
+            div(
+              class = "mb-3",
+              textInput(
+                ns("search_extensions"),
+                label = NULL,
+                placeholder = "Search extensions...",
+                width = "300px"
+              )
+            ),
             uiOutput(ns("extensions_cards"))
           )
         )
@@ -54,7 +63,7 @@ mod_extensions_server <- function(id, api) {
       }
     })
 
-    # Render extension cards
+    # Render extension cards with search filtering
     output$extensions_cards <- renderUI({
       if (is.null(extensions_data$available)) {
         return(div(
@@ -78,8 +87,49 @@ mod_extensions_server <- function(id, api) {
         ))
       }
 
-      # Create cards for each extension
-      cards <- lapply(extensions_data$available, function(ext) {
+      # Get search term
+      search_term <- input$search_extensions
+
+      # Filter extensions based on search
+      filtered_extensions <- extensions_data$available
+      if (!is.null(search_term) && nchar(trimws(search_term)) > 0) {
+        search_lower <- tolower(trimws(search_term))
+        filtered_extensions <- Filter(
+          function(ext) {
+            pkg_info <- tryCatch(
+              {
+                desc <- packageDescription(ext)
+                title <- if (!is.null(desc$Title) && desc$Title != "NA") {
+                  desc$Title
+                } else {
+                  ext
+                }
+                # Search in package name and title
+                grepl(search_lower, tolower(ext), fixed = TRUE) ||
+                  grepl(search_lower, tolower(title), fixed = TRUE)
+              },
+              error = function(e) {
+                # If error getting description, just search package name
+                grepl(search_lower, tolower(ext), fixed = TRUE)
+              }
+            )
+          },
+          extensions_data$available
+        )
+      }
+
+      # Show message if no results
+      if (length(filtered_extensions) == 0) {
+        return(div(
+          style = "text-align: center; padding: 40px; color: #999;",
+          icon("search", style = "font-size: 48px; margin-bottom: 10px;"),
+          br(),
+          paste("No extensions found matching '", search_term, "'")
+        ))
+      }
+
+      # Create cards for filtered extensions
+      cards <- lapply(filtered_extensions, function(ext) {
         # Get package description info
         pkg_info <- tryCatch(
           {
