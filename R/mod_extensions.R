@@ -10,6 +10,28 @@
 mod_extensions_ui <- function(id) {
   ns <- NS(id)
   tagList(
+    tags$style(
+      "
+      .description-text {
+        overflow: hidden;
+        transition: all 0.3s ease;
+        max-height: 1.2em;
+        line-height: 1.2em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .description-text:hover {
+        max-height: none;
+        white-space: normal;
+        background-color: #f8f9fa;
+        padding: 8px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 10;
+        position: relative;
+      }
+    "
+    ),
     tabsetPanel(
       type = "tabs",
       id = ns("extensions_tabset"),
@@ -192,6 +214,11 @@ mod_extensions_server <- function(id, api) {
                 desc$Version
               } else {
                 "Unknown"
+              },
+              license = if (!is.null(desc$License) && desc$License != "NA") {
+                desc$License
+              } else {
+                "Unknown"
               }
             )
           },
@@ -200,7 +227,85 @@ mod_extensions_server <- function(id, api) {
               title = ext,
               description = "Extension package for requal",
               author = "Unknown",
-              version = "Unknown"
+              version = "Unknown",
+              license = "Unknown"
+            )
+          }
+        )
+
+        # Try to find package logo
+        logo_element <- tryCatch(
+          {
+            pkg_path <- system.file(package = ext)
+
+            # Recursively search for logo files
+            logo_files <- c()
+
+            # Search in man directory recursively
+            man_dir <- file.path(pkg_path, "man")
+            if (dir.exists(man_dir)) {
+              logo_files <- c(
+                logo_files,
+                list.files(
+                  man_dir,
+                  pattern = "^logo\\.(png|jpg|jpeg|svg)$",
+                  recursive = TRUE,
+                  full.names = TRUE,
+                  ignore.case = TRUE
+                )
+              )
+            }
+
+            # Search in inst directory recursively
+            inst_dir <- file.path(pkg_path, "inst")
+            if (dir.exists(inst_dir)) {
+              logo_files <- c(
+                logo_files,
+                list.files(
+                  inst_dir,
+                  pattern = "^logo\\.(png|jpg|jpeg|svg)$",
+                  recursive = TRUE,
+                  full.names = TRUE,
+                  ignore.case = TRUE
+                )
+              )
+            }
+
+            # Also check root directory
+            root_logos <- list.files(
+              pkg_path,
+              pattern = "^logo\\.(png|jpg|jpeg|svg)$",
+              full.names = TRUE,
+              ignore.case = TRUE
+            )
+            logo_files <- c(logo_files, root_logos)
+
+            # Use first found logo
+            if (length(logo_files) > 0) {
+              existing_logo <- logo_files[1]
+              print(paste("Found logo for", ext, "at:", existing_logo))
+
+              # Convert to base64 for embedding
+              logo_data <- base64enc::base64encode(existing_logo)
+              tags$img(
+                src = paste0("data:image/png;base64,", logo_data),
+                style = "width: 48px; height: 48px; object-fit: contain;",
+                alt = paste("Logo for", ext)
+              )
+            } else {
+              # Fallback to puzzle icon - same size as logos
+              icon(
+                "puzzle-piece",
+                style = "font-size: 48px; width: 48px; height: 48px; color: #007bff;"
+              )
+            }
+          },
+          error = function(e) {
+            print(paste("Error finding logo for", ext, ":", e$message))
+            # Fallback to puzzle icon on any error - same size as logos
+            icon(
+              "puzzle-piece",
+              style = "font-size: 48px; width: 48px; height: 48px; color: #007bff;"
             )
           }
         )
@@ -214,22 +319,26 @@ mod_extensions_server <- function(id, api) {
             class = "card h-100",
             div(
               class = "card-body d-flex flex-column",
-              h5(
-                class = "card-title",
-                tagList(icon("puzzle-piece"), " ", pkg_info$title)
+              div(
+                class = "d-flex align-items-center mb-3",
+                div(
+                  class = "me-3",
+                  logo_element
+                ),
+                h5(
+                  class = "card-title mb-0",
+                  pkg_info$title
+                )
               ),
               h6(
                 class = "card-subtitle mb-2 text-muted",
-                paste("Package:", ext)
+                paste("Package:", ext, "| License:", pkg_info$license)
               ),
               p(
-                class = "card-text flex-fill",
-                # Truncate long descriptions
-                if (nchar(pkg_info$description) > 120) {
-                  paste0(substr(pkg_info$description, 1, 117), "...")
-                } else {
-                  pkg_info$description
-                }
+                class = "card-text flex-fill description-text",
+                style = "cursor: pointer;",
+                # Always show full text - CSS will handle truncation and expansion
+                pkg_info$description
               ),
               p(
                 class = "text-muted mb-2 small",
@@ -315,11 +424,28 @@ mod_extensions_server <- function(id, api) {
             ui_func <- eval(parse(text = ui_call))
 
             if (is.function(ui_func)) {
+              # Check for custom display name in DESCRIPTION
+              display_name <- tryCatch(
+                {
+                  desc <- packageDescription(ext)
+                  # Look for Config/requal/displayName field
+                  config_field <- desc[["Config/requal/displayName"]]
+                  if (!is.null(config_field) && config_field != "NA") {
+                    config_field
+                  } else {
+                    ext # fallback to package name
+                  }
+                },
+                error = function(e) {
+                  ext # fallback to package name on error
+                }
+              )
+
               # Add the tab to the existing tabsetPanel
               appendTab(
                 inputId = "extensions_tabset",
                 tab = tabPanel(
-                  title = tagList(icon("puzzle-piece"), ext),
+                  title = tagList(icon("puzzle-piece"), display_name),
                   value = paste0(ext, "_tab"),
                   ui_func(ns(extension_id))
                 ),
@@ -377,11 +503,7 @@ mod_extensions_server <- function(id, api) {
       )
     })
 
-    # Handle refresh extensions
-    observeEvent(input$refresh_extensions, {
-      extensions_data$available <- NULL # Reset to trigger re-discovery
-      showNotification("Checking for extensions...", type = "message")
-    })
+    # Handle close extension events
     observeEvent(input$close_extension, {
       ext <- input$close_extension
       print(paste("Closing extension:", ext))
@@ -420,6 +542,12 @@ mod_extensions_server <- function(id, api) {
           )
         }
       )
+    })
+
+    # Handle refresh extensions
+    observeEvent(input$refresh_extensions, {
+      extensions_data$available <- NULL # Reset to trigger re-discovery
+      showNotification("Checking for extensions...", type = "message")
     })
   })
 }
