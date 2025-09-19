@@ -47,17 +47,17 @@ RequalAPI <- R6::R6Class(
           stop("Database connection is not set.")
         }
         # Collect data with filters
-        segments_data <- dplyr::tbl(private$.con, "segments") |>
+        segments_data <- dplyr::tbl(private$.con, "segments") %>%
           dplyr::filter(
             user_id == !!user_id,
             project_id == !!project_id
-          ) |>
+          ) %>%
           dplyr::collect()
-        codes_data <- dplyr::tbl(private$.con, "codes") |>
+        codes_data <- dplyr::tbl(private$.con, "codes") %>%
           dplyr::filter(
             project_id == !!project_id
-          ) |>
-          dplyr::select(code_id, code_name, code_description) |>
+          ) %>%
+          dplyr::select(code_id, code_name, code_description) %>%
           dplyr::collect()
         data <- dplyr::inner_join(segments_data, codes_data, by = "code_id")
         return(data)
