@@ -69,7 +69,8 @@ set_dashboard_body <- function() {
         mod_document_code_ui("document_code_ui_1")
       ),
       shinydashboard::tabItem("Analyze", mod_analysis_ui("analysis_ui_1")),
-      shinydashboard::tabItem("Report", mod_reporting_ui("reporting_ui_1"))
+      shinydashboard::tabItem("Report", mod_reporting_ui("reporting_ui_1")),
+      shinydashboard::tabItem("Modules", mod_extensions_ui("extensions_ui_1"))
     ))
   )
 }
@@ -113,6 +114,11 @@ set_left_menu <- function() {
         "Report",
         tabName = "Report",
         icon = icon("chart-bar")
+      ),
+      shinydashboard::menuItem(
+        "Modules",
+        tabName = "Modules",
+        icon = icon("box-open")
       ),
       id = "tab_menu"
     )

@@ -4,9 +4,18 @@ options(golem.app.prod = FALSE) # TRUE = production mode, FALSE = development mo
 # Detach all loaded packages and clean your environment
 golem::detach_all_attached()
 # rm(list=ls(all.names = TRUE))
+renv::install(
+  "/Users/radimhladik/repos/rql.textimport_0.0.0.9005.tar.gz",
+  prompt = F
+)
+renv::install(
+  "/Users/radimhladik/repos/rql.wordcloud_0.0.0.9013.tar.gz",
+  prompt = F
+)
 
 # Document and reload your package
 golem::document_and_reload()
+
 
 (run_app(
   mode = "server",
@@ -17,14 +26,12 @@ golem::document_and_reload()
   credentials_path = "requal_users.sqlite",
   credentials_pass = "test",
   options = list("launch.browser")
- ))
-
+))
 
 # (run_app(
 #  mode = "local",
 #  options = list("launch.browser")
 # ))
-
 
 # (run_app(
 #   mode = "local_test",
