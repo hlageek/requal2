@@ -68,7 +68,6 @@ mod_extensions_ui <- function(id) {
 mod_extensions_server <- function(id, api) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    observe(print(api))
 
     extensions_data <- reactiveValues(
       available = NULL,
@@ -79,10 +78,6 @@ mod_extensions_server <- function(id, api) {
     observe({
       if (is.null(extensions_data$available)) {
         extensions_data$available <- tools::dependsOnPkgs("requal")
-        print(paste(
-          "Auto-discovered extensions:",
-          paste(extensions_data$available, collapse = ", ")
-        ))
       }
 
       # Show/hide search input based on available extensions
@@ -283,7 +278,6 @@ mod_extensions_server <- function(id, api) {
             # Use first found logo
             if (length(logo_files) > 0) {
               existing_logo <- logo_files[1]
-              print(paste("Found logo for", ext, "at:", existing_logo))
 
               # Convert to base64 for embedding
               logo_data <- base64enc::base64encode(existing_logo)
@@ -301,7 +295,6 @@ mod_extensions_server <- function(id, api) {
             }
           },
           error = function(e) {
-            print(paste("Error finding logo for", ext, ":", e$message))
             # Fallback to puzzle icon on any error - same size as logos
             icon(
               "puzzle-piece",
@@ -412,7 +405,6 @@ mod_extensions_server <- function(id, api) {
     # Handle launch extension events
     observeEvent(input$launch_extension, {
       ext <- input$launch_extension
-      print(paste("Launching extension:", ext))
 
       extension_id <- paste0("ext_", ext)
 
@@ -466,17 +458,14 @@ mod_extensions_server <- function(id, api) {
 
               if (is.function(server_func)) {
                 server_func(extension_id, api = api)
-                print(paste("Server function initialized for", ext))
               }
             } else {
-              print(paste("mod_ui is not a function in", ext))
               showNotification(
                 paste("Error: mod_ui not found in", ext),
                 type = "error"
               )
             }
           } else {
-            print(paste("Could not load namespace for", ext))
             showNotification(
               paste("Could not load extension:", ext),
               type = "error"
@@ -484,7 +473,6 @@ mod_extensions_server <- function(id, api) {
           }
         },
         error = function(e) {
-          print(paste("Error loading extension", ext, ":", e$message))
           showNotification(
             paste("Error loading", ext, ":", e$message),
             type = "error"
@@ -506,7 +494,6 @@ mod_extensions_server <- function(id, api) {
     # Handle close extension events
     observeEvent(input$close_extension, {
       ext <- input$close_extension
-      print(paste("Closing extension:", ext))
 
       tryCatch(
         {
@@ -535,7 +522,6 @@ mod_extensions_server <- function(id, api) {
           )
         },
         error = function(e) {
-          print(paste("Error closing extension", ext, ":", e$message))
           showNotification(
             paste("Error closing", ext, ":", e$message),
             type = "error"
