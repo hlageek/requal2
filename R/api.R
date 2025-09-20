@@ -21,7 +21,7 @@
 #'   \item Return \code{FALSE} on errors with warnings (\code{write_*}, \code{edit_*}, \code{delete_*} methods)
 #' }
 #'
-#' @field api_version Character. The API version (read-only)
+#' @field api_version Character. The API version
 #'
 #' @examples
 #' \dontrun{

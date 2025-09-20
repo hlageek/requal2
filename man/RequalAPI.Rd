@@ -58,7 +58,7 @@ result <- api$write_document(
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{api_version}}{Character. The API version (read-only)}
+\item{\code{api_version}}{Character. The API version}
 }
 \if{html}{\out{</div>}}
 }
