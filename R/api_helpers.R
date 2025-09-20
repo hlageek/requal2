@@ -8,11 +8,19 @@
 #' @return DBI connection object to mock SQLite database
 #' @keywords internal
 .get_mock_connection <- function() {
+  # Locate the mock database in the package
   mock_db_path <- system.file("extdata", "mock.requal", package = "requal")
-  if (!file.exists(mock_db_path)) {
-    stop("Mock database not found in package", call. = FALSE)
-  }
-  DBI::dbConnect(RSQLite::SQLite(), mock_db_path)
+
+  # Create a temporary file for the writable database
+  temp_db_path <- tempfile(fileext = ".requal")
+
+  # Copy the mock database to the temporary file
+  file.copy(mock_db_path, temp_db_path, overwrite = TRUE)
+
+  # Connect to the temporary database file
+  con <- DBI::dbConnect(RSQLite::SQLite(), temp_db_path)
+
+  return(con)
 }
 
 

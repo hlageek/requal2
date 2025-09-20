@@ -15,7 +15,8 @@ renv::install(
 
 # Document and reload your package
 golem::document_and_reload()
-
+# api <- RequalAPI$new()
+# api$get_segments()
 
 (run_app(
   mode = "server",

@@ -12,7 +12,7 @@ while maintaining data integrity and user permissions.
 The API operates in two modes:
 \itemize{
   \item \strong{Production mode}: Uses the actual database connection from the main app
-  \item \strong{Mock mode}: Uses a bundled SQLite database for testing extensions
+  \item \strong{Mock mode}: For \code{NULL} connections, uses a bundled SQLite database for testing purposes
 }
 
 All methods follow a consistent pattern:
@@ -38,7 +38,7 @@ segments <- api$get_segments()  # Gets mock data
 ## ------------------------------------------------
 
 \dontrun{
-api <- RequalAPI$new(mode = "mock")
+api <- RequalAPI$new()
 segments <- api$get_segments()  # Get all segments user is permitted to see
 }
 
@@ -47,7 +47,7 @@ segments <- api$get_segments()  # Get all segments user is permitted to see
 ## ------------------------------------------------
 
 \dontrun{
-api <- RequalAPI$new(mode = "mock")
+api <- RequalAPI$new()
 result <- api$write_document(
   doc_name = "Interview_01",
   doc_text = "Full interview transcript...",
@@ -58,7 +58,7 @@ result <- api$write_document(
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{api_version}}{Character. The API version}
+\item{\code{version}}{Character. The API version}
 }
 \if{html}{\out{</div>}}
 }
@@ -86,19 +86,17 @@ result <- api$write_document(
 \subsection{Method \code{new()}}{
 Initialize a new RequalAPI instance
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RequalAPI$new(con = NULL, user_id, project_id, mode = "production")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RequalAPI$new(con = NULL, user_id = NULL, project_id = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{con}}{Database connection (pool object). Required for production mode.}
+\item{\code{con}}{Database connection (pool object). If \code{NULL}, will launch a bundled mock database.}
 
 \item{\code{user_id}}{Integer. The authenticated user's ID (immutable).}
 
 \item{\code{project_id}}{Integer. The current project's ID (immutable).}
-
-\item{\code{mode}}{Character. Either "production" (default) or "mock".}
 }
 \if{html}{\out{</div>}}
 }
@@ -124,7 +122,7 @@ A dataframe containing segments with associated code information, or NULL on err
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
-api <- RequalAPI$new(mode = "mock")
+api <- RequalAPI$new()
 segments <- api$get_segments()  # Get all segments user is permitted to see
 }
 }
@@ -159,7 +157,7 @@ Result from the document creation operation, or NULL on error.
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
-api <- RequalAPI$new(mode = "mock")
+api <- RequalAPI$new()
 result <- api$write_document(
   doc_name = "Interview_01",
   doc_text = "Full interview transcript...",

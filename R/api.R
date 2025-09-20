@@ -9,7 +9,7 @@
 #' The API operates in two modes:
 #' \itemize{
 #'   \item \strong{Production mode}: Uses the actual database connection from the main app
-#'   \item \strong{Mock mode}: Uses a bundled SQLite database for testing extensions
+#'   \item \strong{Mock mode}: For \code{NULL} connections, uses a bundled SQLite database for testing purposes
 #' }
 #'
 #' All methods follow a consistent pattern:
@@ -21,7 +21,7 @@
 #'   \item Return \code{FALSE} on errors with warnings (\code{write_*}, \code{edit_*}, \code{delete_*} methods)
 #' }
 #'
-#' @field api_version Character. The API version
+#' @field version Character. The API version
 #'
 #' @examples
 #' \dontrun{
@@ -38,7 +38,6 @@ RequalAPI <- R6::R6Class(
     .con = NULL,
     .user_id = NULL,
     .project_id = NULL,
-    .mode = "production",
 
     # Internal helper to connect to the bundled mock database for testing
     .get_mock_connection = function() {
@@ -57,50 +56,36 @@ RequalAPI <- R6::R6Class(
   ),
 
   public = list(
-    api_version = "0.1.0",
+    version = "0.1.0",
 
     #' @description
     #' Initialize a new RequalAPI instance
     #'
-    #' @param con Database connection (pool object). Required for production mode.
+    #' @param con Database connection (pool object). If \code{NULL}, will launch a bundled mock database.
     #' @param user_id Integer. The authenticated user's ID (immutable).
     #' @param project_id Integer. The current project's ID (immutable).
-    #' @param mode Character. Either "production" (default) or "mock".
     #'
     #' @return A new RequalAPI instance
     initialize = function(
       con = NULL,
-      user_id,
-      project_id,
-      mode = "production"
+      user_id = NULL,
+      project_id = NULL
     ) {
-      stopifnot(
-        "mode must be 'production' or 'mock'" = mode %in%
-          c("production", "mock")
-      )
-
-      if (mode == "production") {
+      if (is.null(con)) {
+        private$.con <- private$.get_mock_connection()
+        private$.user_id <- 1L
+        private$.project_id <- 1L
+      } else {
         stopifnot(
           "user_id must be a single number" = is.numeric(user_id) &&
             length(user_id) == 1,
           "project_id must be a single number" = is.numeric(project_id) &&
             length(project_id) == 1
         )
-      }
-
-      if (mode == "mock") {
-        private$.con <- private$.get_mock_connection()
-        private$.user_id <- 1L
-        private$.project_id <- 1L
-      } else {
-        if (is.null(con)) {
-          stop("Database connection required in production mode", call. = FALSE)
-        }
         private$.con <- con
         private$.user_id <- as.integer(user_id)
         private$.project_id <- as.integer(project_id)
       }
-      private$.mode <- mode
     },
     #' @description
     #' Get coded segments for the current user and project
@@ -112,7 +97,7 @@ RequalAPI <- R6::R6Class(
     #'
     #' @examples
     #' \dontrun{
-    #' api <- RequalAPI$new(mode = "mock")
+    #' api <- RequalAPI$new()
     #' segments <- api$get_segments()  # Get all segments user is permitted to see
     #' }
     get_segments = function() {
@@ -137,7 +122,10 @@ RequalAPI <- R6::R6Class(
 
           # Start building the segments query
           segments_query <- dplyr::tbl(private$.con, "segments") %>%
-            dplyr::filter(project_id == !!self$project_id)
+            dplyr::filter(project_id == !!self$project_id) %>%
+            # Exclude memos
+            # TODO: make this a parameter
+            dplyr::filter(!is.na(code_id))
 
           if (!can_view_others) {
             segments_query <- segments_query %>%
@@ -146,7 +134,13 @@ RequalAPI <- R6::R6Class(
 
           # Start building the codes query
           codes_query <- dplyr::tbl(private$.con, "codes") %>%
-            dplyr::filter(project_id == !!self$project_id)
+            dplyr::filter(project_id == !!self$project_id) %>%
+            dplyr::select(
+              code_id,
+              code_name,
+              code_description,
+              code_created_by = user_id
+            )
 
           if (!can_view_others_codes) {
             codes_query <- codes_query %>%
@@ -157,16 +151,17 @@ RequalAPI <- R6::R6Class(
           data <- segments_query %>%
             dplyr::inner_join(codes_query, by = "code_id") %>%
             dplyr::select(
+              project_id,
+              user_id,
+              doc_id,
               segment_id,
-              document_id,
-              start_pos,
-              end_pos,
+              segment_start,
+              segment_end,
               segment_text,
               code_id,
               code_name,
               code_description,
-              user_id,
-              project_id
+              code_created_by
             ) %>%
             dplyr::collect()
 
@@ -190,7 +185,7 @@ RequalAPI <- R6::R6Class(
     #'
     #' @examples
     #' \dontrun{
-    #' api <- RequalAPI$new(mode = "mock")
+    #' api <- RequalAPI$new()
     #' result <- api$write_document(
     #'   doc_name = "Interview_01",
     #'   doc_text = "Full interview transcript...",
