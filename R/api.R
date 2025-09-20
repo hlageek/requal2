@@ -13,7 +13,7 @@
 #' All methods follow a consistent pattern:
 #' - Return dataframes, vectors, or logical values (quiet methods)
 #' - Return NULL on errors with warnings (`get_*` methods)
-#' - Return FALSE on errors with warnings (`write_*`, `edit_*``delete_*` methods)
+#' - Return FALSE on errors with warnings (`write_*`, `edit_*`, `delete_*` methods)
 #' - Respect user permissions for the current project
 #' - Default to current user and project context
 #'
@@ -33,9 +33,77 @@ RequalAPI <- R6::R6Class(
   private = list(
     .con = NULL,
     .mode = "production",
-    .validate_ids = .validate_ids,
-    .get_mock_connection = .get_mock_connection,
-    .check_permissions = .check_permissions
+
+#' Validate user and project IDs
+#'
+#' @description Internal helper to ensure IDs are valid integers
+#' @param user_id Numeric. User ID to validate
+#' @param project_id Numeric. Project ID to validate
+#' @return List with validated integer user_id and project_id
+#' @keywords internal
+.validate_ids = function(user_id, project_id) {
+  if (!is.numeric(user_id) || user_id != as.integer(user_id)) {
+    stop("user_id must be an integer.", call. = FALSE)
+  }
+  if (!is.numeric(project_id) || project_id != as.integer(project_id)) {
+    stop("project_id must be an integer.", call. = FALSE)
+  }
+  list(user_id = as.integer(user_id), project_id = as.integer(project_id))
+}
+
+#' Get connection to mock database
+#'
+#' @description Internal helper to connect to the bundled mock database for testing
+#' @return DBI connection object to mock SQLite database
+#' @keywords internal
+.get_mock_connection = function() {
+  mock_db_path <- system.file("extdata", "mock.requal", package = "requal")
+
+  if (!file.exists(mock_db_path)) {
+    stop("Mock database not found in package", call. = FALSE)
+  }
+
+  DBI::dbConnect(RSQLite::SQLite(), mock_db_path)
+}
+
+#' Check user permissions for database operations
+#'
+#' @description Internal helper to verify user has permission for requested operation
+#' @param user_id Integer. User ID to check permissions for
+#' @param project_id Integer. Project ID to check permissions in
+#' @param operation Character. Type of operation: "view", "modify", "other_view", "other_modify"
+#' @param context Character. Permission context: "data", "attributes", "codebook", "annotation", "memo"
+#' @return Logical. TRUE if user has permission, FALSE otherwise
+#' @keywords internal
+.check_permissions = function(
+  user_id,
+  project_id,
+  operation = "view",
+  context = "data"
+) {
+  # Get user permissions from database
+  user_perms <- dplyr::tbl(private$.con, "user_permissions") %>%
+    dplyr::filter(
+      user_id == !!user_id,
+      project_id == !!project_id
+    ) %>%
+    dplyr::collect()
+
+  if (nrow(user_perms) == 0) {
+    return(FALSE) # No permissions found
+  }
+
+  # Build permission column name
+  perm_column <- paste0(context, "_", operation)
+
+  # Check if column exists and get permission value
+  if (perm_column %in% names(user_perms)) {
+    return(as.logical(user_perms[[perm_column]]))
+  } else {
+    return(FALSE) # Unknown permission column
+  }
+}
+
   ),
 
   public = list(
@@ -236,7 +304,7 @@ RequalAPI <- R6::R6Class(
           return(NULL)
         }
       )
-    },
+    }
 
     # TODO: Placeholder write methods
     # write_code = function(code_name, code_description = "", project_id = self$project_id) { },
@@ -271,76 +339,3 @@ RequalAPI <- R6::R6Class(
   )
 )
 
-# =============================================================================
-# API HELPER FUNCTIONS - TO BE MOVED TO api_funs.R
-# =============================================================================
-
-#' Validate user and project IDs
-#'
-#' @description Internal helper to ensure IDs are valid integers
-#' @param user_id Numeric. User ID to validate
-#' @param project_id Numeric. Project ID to validate
-#' @return List with validated integer user_id and project_id
-#' @keywords internal
-.validate_ids <- function(user_id, project_id) {
-  if (!is.numeric(user_id) || user_id != as.integer(user_id)) {
-    stop("user_id must be an integer.", call. = FALSE)
-  }
-  if (!is.numeric(project_id) || project_id != as.integer(project_id)) {
-    stop("project_id must be an integer.", call. = FALSE)
-  }
-  list(user_id = as.integer(user_id), project_id = as.integer(project_id))
-}
-
-#' Get connection to mock database
-#'
-#' @description Internal helper to connect to the bundled mock database for testing
-#' @return DBI connection object to mock SQLite database
-#' @keywords internal
-.get_mock_connection <- function() {
-  mock_db_path <- system.file("extdata", "mock.requal", package = "requal")
-
-  if (!file.exists(mock_db_path)) {
-    stop("Mock database not found in package", call. = FALSE)
-  }
-
-  DBI::dbConnect(RSQLite::SQLite(), mock_db_path)
-}
-
-#' Check user permissions for database operations
-#'
-#' @description Internal helper to verify user has permission for requested operation
-#' @param user_id Integer. User ID to check permissions for
-#' @param project_id Integer. Project ID to check permissions in
-#' @param operation Character. Type of operation: "view", "modify", "other_view", "other_modify"
-#' @param context Character. Permission context: "data", "attributes", "codebook", "annotation", "memo"
-#' @return Logical. TRUE if user has permission, FALSE otherwise
-#' @keywords internal
-.check_permissions <- function(
-  user_id,
-  project_id,
-  operation = "view",
-  context = "data"
-) {
-  # Get user permissions from database
-  user_perms <- dplyr::tbl(private$.con, "user_permissions") %>%
-    dplyr::filter(
-      user_id == !!user_id,
-      project_id == !!project_id
-    ) %>%
-    dplyr::collect()
-
-  if (nrow(user_perms) == 0) {
-    return(FALSE) # No permissions found
-  }
-
-  # Build permission column name
-  perm_column <- paste0(context, "_", operation)
-
-  # Check if column exists and get permission value
-  if (perm_column %in% names(user_perms)) {
-    return(as.logical(user_perms[[perm_column]]))
-  } else {
-    return(FALSE) # Unknown permission column
-  }
-}
