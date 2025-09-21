@@ -79,14 +79,10 @@ mod_extensions_server <- function(id, api) {
       launched = c() # Track which extensions are launched
     )
 
-    # Auto-discover extensions on module load
+    # Discover extensions on module load
     observe({
       if (is.null(extensions_data$available)) {
         extensions_data$available <- tools::dependsOnPkgs("requal")
-        print(paste(
-          "Auto-discovered extensions:",
-          paste(extensions_data$available, collapse = ", ")
-        ))
       }
 
       # Show/hide search input based on available extensions
@@ -139,12 +135,6 @@ mod_extensions_server <- function(id, api) {
             ),
             " to learn more about available extensions and installation instructions.",
             style = "color: #666; margin-bottom: 20px;"
-          ),
-          actionButton(
-            ns("refresh_extensions"),
-            "Refresh",
-            class = "btn-outline-primary",
-            icon = icon("refresh")
           )
         ))
       }
@@ -546,12 +536,6 @@ mod_extensions_server <- function(id, api) {
           )
         }
       )
-    })
-
-    # Handle refresh extensions
-    observeEvent(input$refresh_extensions, {
-      extensions_data$available <- NULL # Reset to trigger re-discovery
-      showNotification("Checking for extensions...", type = "message")
     })
   })
 }
