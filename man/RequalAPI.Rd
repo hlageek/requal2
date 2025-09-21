@@ -4,9 +4,10 @@
 \alias{RequalAPI}
 \title{Requal API}
 \description{
-An API interface for Requal extensions to interact with qualitative data.
+An API interface for Requal extension modules to interact with qualitative data.
 Provides controlled access to documents, codes, coded segments, and other project data
 while maintaining data integrity and user permissions.
+The API can also support mixed-methods analyses when used in interactive sessions.
 }
 \details{
 The API operates in two modes:
@@ -25,10 +26,6 @@ All methods follow a consistent pattern:
 }
 }
 \examples{
-# Mock usage (for extension development/testing)
-api <- requal::RequalAPI$new()
-cat("Using API version:", api$version)
-
 
 ## ------------------------------------------------
 ## Method `RequalAPI$new`
@@ -42,21 +39,35 @@ cat("Using API version:", api$version)
 ## ------------------------------------------------
 
 api <- requal::RequalAPI$new()
-segments <- api$get_segments()  # Gets mock data
+segments <- api$get_segments()  # Gets mock segments
 head(segments)
+Get documents for the current user and project
+
 
 ## ------------------------------------------------
-## Method `RequalAPI$write_document`
+## Method `RequalAPI$get_documents`
+## ------------------------------------------------
+
+api <- requal::RequalAPI$new()
+documents <- api$get_documents()  # Gets mock documents
+head(documents)
+
+## ------------------------------------------------
+## Method `RequalAPI$write_documents`
 ## ------------------------------------------------
 
 \dontrun{
-api <- RequalAPI$new()
-result <- api$write_document(
-  doc_name = "Interview_01",
-  doc_text = "Full interview transcript...",
-  doc_description = "First participant interview"
+documents_df <- data.frame(
+  doc_name = c("doc1", "doc2"),
+  doc_text = c("Text for doc1", "Text for doc2"),
+  doc_description = c("Description for doc1", "Description for doc2")
 )
+api <- RequalAPI$new()
+result <- api$write_documents(documents_df)
 }
+}
+\seealso{
+For examples, see the documentation for the \code{RequalAPI$new()} method.
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -79,7 +90,8 @@ result <- api$write_document(
 \itemize{
 \item \href{#method-RequalAPI-new}{\code{RequalAPI$new()}}
 \item \href{#method-RequalAPI-get_segments}{\code{RequalAPI$get_segments()}}
-\item \href{#method-RequalAPI-write_document}{\code{RequalAPI$write_document()}}
+\item \href{#method-RequalAPI-get_documents}{\code{RequalAPI$get_documents()}}
+\item \href{#method-RequalAPI-write_documents}{\code{RequalAPI$write_documents()}}
 \item \href{#method-RequalAPI-clone}{\code{RequalAPI$clone()}}
 }
 }
@@ -97,9 +109,9 @@ Initialize a new RequalAPI instance
 \describe{
 \item{\code{con}}{Database connection (pool object). If \code{NULL}, will launch a bundled mock database.}
 
-\item{\code{user_id}}{Integer. The authenticated user's ID (immutable).}
+\item{\code{user_id}}{Integer. The current user's ID.}
 
-\item{\code{project_id}}{Integer. The current project's ID (immutable).}
+\item{\code{project_id}}{Integer. The current project's ID.}
 }
 \if{html}{\out{</div>}}
 }
@@ -127,15 +139,17 @@ Get coded segments for the current user and project
 
 \subsection{Returns}{
 A dataframe containing segments with associated code information, or NULL on error.
-Returns all segments the authenticated user is permitted to see based on their permissions.
-Columns include: segment_id, document_id, start_pos, end_pos,
+Returns all segments the authenticated user is permitted to view based on their permissions.
+Columns include: segment_id, document_id, segment_start, segment_end,
 segment_text, code_id, code_name, code_description, user_id, project_id
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{api <- requal::RequalAPI$new()
-segments <- api$get_segments()  # Gets mock data
+segments <- api$get_segments()  # Gets mock segments
 head(segments)
+Get documents for the current user and project
+
 }
 \if{html}{\out{</div>}}
 
@@ -143,37 +157,60 @@ head(segments)
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RequalAPI-write_document"></a>}}
-\if{latex}{\out{\hypertarget{method-RequalAPI-write_document}{}}}
-\subsection{Method \code{write_document()}}{
+\if{html}{\out{<a id="method-RequalAPI-get_documents"></a>}}
+\if{latex}{\out{\hypertarget{method-RequalAPI-get_documents}{}}}
+\subsection{Method \code{get_documents()}}{
+Retrieves documents for the current user and project from the database.
+This function acts as a wrapper around the \code{get_documents_impl} function.
+For detailed implementation, see \code{\link{get_documents_impl}}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RequalAPI$get_documents()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A dataframe containing a subset of documents
+corresponding to user permissions, or \code{NULL} on error.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{api <- requal::RequalAPI$new()
+documents <- api$get_documents()  # Gets mock documents
+head(documents)
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RequalAPI-write_documents"></a>}}
+\if{latex}{\out{\hypertarget{method-RequalAPI-write_documents}{}}}
+\subsection{Method \code{write_documents()}}{
 Add a new document to the current project
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RequalAPI$write_document(doc_name, doc_text, doc_description = "")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RequalAPI$write_documents(.data)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{doc_name}}{Character. Name/title for the document (required).}
-
-\item{\code{doc_text}}{Character. Full text content of the document (required).}
-
-\item{\code{doc_description}}{Character. Optional description of the document.}
+\item{\code{.data}}{Dataframe. A dataframe with columns: doc_name, doc_text, doc_description.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Result from the document creation operation, or NULL on error.
+Result of the write operation (logical)
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
-api <- RequalAPI$new()
-result <- api$write_document(
-  doc_name = "Interview_01",
-  doc_text = "Full interview transcript...",
-  doc_description = "First participant interview"
+documents_df <- data.frame(
+  doc_name = c("doc1", "doc2"),
+  doc_text = c("Text for doc1", "Text for doc2"),
+  doc_description = c("Description for doc1", "Description for doc2")
 )
+api <- RequalAPI$new()
+result <- api$write_documents(documents_df)
 }
 }
 \if{html}{\out{</div>}}

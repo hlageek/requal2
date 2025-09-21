@@ -1,9 +1,10 @@
 #' Requal API
 #'
 #' @description
-#' An API interface for Requal extensions to interact with qualitative data.
+#' An API interface for Requal extension modules to interact with qualitative data.
 #' Provides controlled access to documents, codes, coded segments, and other project data
 #' while maintaining data integrity and user permissions.
+#' The API can also support mixed-methods analyses when used in interactive sessions.
 #'
 #' @details
 #' The API operates in two modes:
@@ -23,10 +24,8 @@
 #'
 #' @field version Character. The API version
 #'
-#' @examples
-#' # Development usage (for extension development/testing)
-#' api <- requal::RequalAPI$new()
-#' cat("Using API version:", api$version)
+#' @seealso
+#' For examples, see the documentation for the `RequalAPI$new()` method.
 #'
 #' @export
 RequalAPI <- R6::R6Class(
@@ -42,13 +41,13 @@ RequalAPI <- R6::R6Class(
     },
 
     # Internal helper to verify user has permission for requested operation
-    .check_permissions = function(
-      user_id,
-      project_id,
-      operation = "view",
-      context = "data"
-    ) {
-      .check_permissions(user_id, project_id, private$.con, operation, context)
+    .check_permissions = function(permission) {
+      .check_permissions_impl(
+        private$.con,
+        private$.user_id,
+        private$.project_id,
+        permission = permission
+      )
     },
     finalize = function() {
       if (private$.development && !is.null(private$.con)) {
@@ -59,14 +58,14 @@ RequalAPI <- R6::R6Class(
   ),
 
   public = list(
-    version = "0.1.0",
+    version = "0.1.3",
 
     #' @description
     #' Initialize a new RequalAPI instance
     #'
     #' @param con Database connection (pool object). If `NULL`, will launch a bundled mock database.
-    #' @param user_id Integer. The authenticated user's ID (immutable).
-    #' @param project_id Integer. The current project's ID (immutable).
+    #' @param user_id Integer. The current user's ID.
+    #' @param project_id Integer. The current project's ID.
     #'
     #' @return A new instance of RequalAPI R6 class
     #'
@@ -100,8 +99,8 @@ RequalAPI <- R6::R6Class(
     #' Get coded segments for the current user and project
     #'
     #' @return A dataframe containing segments with associated code information, or NULL on error.
-    #'   Returns all segments the authenticated user is permitted to see based on their permissions.
-    #'   Columns include: segment_id, document_id, start_pos, end_pos,
+    #'   Returns all segments the authenticated user is permitted to view based on their permissions.
+    #'   Columns include: segment_id, document_id, segment_start, segment_end,
     #'   segment_text, code_id, code_name, code_description, user_id, project_id
     #'
     #' @examples
@@ -109,137 +108,49 @@ RequalAPI <- R6::R6Class(
     #' segments <- api$get_segments()  # Gets mock segments
     #' head(segments)
     get_segments = function() {
-      tryCatch(
-        {
-          can_view_others <- private$.check_permissions(
-            private$.user_id,
-            private$.project_id,
-            "other_view",
-            "annotation"
-          )
-          can_view_others_codes <- private$.check_permissions(
-            private$.user_id,
-            private$.project_id,
-            "other_view",
-            "codebook"
-          )
+      get_segments_impl(private)
+    },
 
-          if (is.null(private$.con)) {
-            stop("Database connection is not set.")
-          }
-
-          # Start building the segments query
-          segments_query <- dplyr::tbl(private$.con, "segments") %>%
-            dplyr::filter(project_id == !!private$.project_id) %>%
-            # Exclude memos
-            # TODO: make this a parameter
-            dplyr::filter(!is.na(code_id))
-
-          if (!can_view_others) {
-            segments_query <- segments_query %>%
-              dplyr::filter(user_id == !!private$.user_id)
-          }
-
-          # Start building the codes query
-          codes_query <- dplyr::tbl(private$.con, "codes") %>%
-            dplyr::filter(project_id == !!private$.project_id) %>%
-            dplyr::select(
-              code_id,
-              code_name,
-              code_description,
-              code_created_by = user_id
-            )
-
-          if (!can_view_others_codes) {
-            codes_query <- codes_query %>%
-              dplyr::filter(created_by == !!private$.user_id)
-          }
-
-          # Perform the join operation in the database
-          data <- segments_query %>%
-            dplyr::inner_join(codes_query, by = "code_id") %>%
-            dplyr::select(
-              project_id,
-              user_id,
-              doc_id,
-              segment_id,
-              segment_start,
-              segment_end,
-              segment_text,
-              code_id,
-              code_name,
-              code_description,
-              code_created_by
-            ) %>%
-            dplyr::collect()
-
-          return(data)
-        },
-        error = function(e) {
-          warning("Failed to get segments: ", e$message)
-          return(NULL)
-        }
-      )
+    #' Get documents for the current user and project
+    #'
+    #' @description
+    #' Retrieves documents for the current user and project from the database.
+    #' This function acts as a wrapper around the `get_documents_impl` function.
+    #' For detailed implementation, see \code{\link{get_documents_impl}}.
+    #'
+    #' @return A dataframe containing a subset of documents
+    #' corresponding to user permissions, or `NULL` on error.
+    #'
+    #' @examples
+    #' api <- requal::RequalAPI$new()
+    #' documents <- api$get_documents()  # Gets mock documents
+    #' head(documents)
+    get_documents = function() {
+      get_documents_impl(private)
     },
 
     #' @description
     #' Add a new document to the current project
     #'
-    #' @param doc_name Character. Name/title for the document (required).
-    #' @param doc_text Character. Full text content of the document (required).
-    #' @param doc_description Character. Optional description of the document.
+    #' @param .data Dataframe. A dataframe with columns: doc_name, doc_text, doc_description.
     #'
-    #' @return Result from the document creation operation, or NULL on error.
+    #' @return Result of the write operation (logical)
     #'
     #' @examples
     #' \dontrun{
+    #' documents_df <- data.frame(
+    #'   doc_name = c("doc1", "doc2"),
+    #'   doc_text = c("Text for doc1", "Text for doc2"),
+    #'   doc_description = c("Description for doc1", "Description for doc2")
+    #')
     #' api <- RequalAPI$new()
-    #' result <- api$write_document(
-    #'   doc_name = "Interview_01",
-    #'   doc_text = "Full interview transcript...",
-    #'   doc_description = "First participant interview"
-    #' )
+    #' result <- api$write_documents(documents_df)
     #' }
-    write_document = function(doc_name, doc_text, doc_description = "") {
-      tryCatch(
-        {
-          if (
-            !private$.check_permissions(
-              private$.user_id,
-              private$.project_id,
-              "modify",
-              "data"
-            )
-          ) {
-            warning("User lacks permission to create documents in this project")
-            return(NULL)
-          }
-
-          if (is.null(doc_name) || doc_name == "") {
-            stop("doc_name cannot be empty")
-          }
-          if (is.null(doc_text) || doc_text == "") {
-            stop("doc_text cannot be empty")
-          }
-
-          result <- add_input_document(
-            pool = private$.con,
-            project = private$.project_id,
-            doc_name = doc_name,
-            doc_text = doc_text,
-            doc_description = doc_description,
-            user_id = private$.user_id
-          )
-
-          return(result)
-        },
-        error = function(e) {
-          warning("Failed to write document: ", e$message)
-          return(NULL)
-        }
-      )
+    write_documents = function(.data) {
+      write_documents_impl(.data, private)
     }
   ),
+
   active = list(
     #' @field user_id Integer. The authenticated user's ID (read-only)
     user_id = function(value) {
