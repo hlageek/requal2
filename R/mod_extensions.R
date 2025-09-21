@@ -408,7 +408,7 @@ mod_extensions_server <- function(id, api) {
       ext <- input$launch_extension
       print(paste("Launching extension:", ext))
 
-      extension_id <- paste0("ext_", ext)
+      extension_id <- paste0("ext_", ext, "_", as.integer(Sys.time()))
 
       tryCatch(
         {
