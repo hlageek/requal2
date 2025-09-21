@@ -13,8 +13,8 @@ rql_import_rqda(rqda_file, requal_file)
 }
 \description{
 Import data from RQDA database to requal. It uses tables
-RQDA tables "project", "source" (documents), "freecode" (codes) 
+RQDA tables "project", "source" (documents), "freecode" (codes)
 and "coding" (coded segments), "cases", "caselinkage", "codecat" (categories).
-Memos from "source", "freecode", "cases" and "codecat" are used as descriptions. 
+Memos from "source", "freecode", "cases" and "codecat" are used as descriptions.
 Memos from "coding" are stored as memos.
 }

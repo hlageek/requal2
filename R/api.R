@@ -2,14 +2,14 @@
 #'
 #' @description
 #' An API interface for Requal extensions to interact with qualitative data.
-#' Provides controlled access to segments, documents, codes, and other project data
+#' Provides controlled access to documents, codes, coded segments, and other project data
 #' while maintaining data integrity and user permissions.
 #'
 #' @details
 #' The API operates in two modes:
 #' \itemize{
-#'   \item \strong{Production mode}: Uses the actual database connection from the main app
-#'   \item \strong{Mock mode}: For \code{NULL} connections, uses a bundled SQLite database for testing purposes
+#'   \item **Production mode**: Uses the actual database connection from the main app
+#'   \item **Development mode**: For `NULL` connections, uses a bundled SQLite database for testing purposes
 #' }
 #'
 #' All methods follow a consistent pattern:
@@ -17,19 +17,16 @@
 #'   \item Work within the authenticated user and project context
 #'   \item Return all data the user has permissions to access
 #'   \item Return dataframes, vectors, or logical values (quiet methods)
-#'   \item Return \code{NULL} on errors with warnings (\code{get_*} methods)
-#'   \item Return \code{FALSE} on errors with warnings (\code{write_*}, \code{edit_*}, \code{delete_*} methods)
+#'   \item Return `NULL` on errors with warnings (`get_*` methods)
+#'   \item Return `FALSE` on errors with warnings (`write_*`, `edit_*`, `delete_*` methods)
 #' }
 #'
 #' @field version Character. The API version
 #'
 #' @examples
-#' \dontrun{
-#' # Mock usage (for extension development/testing)
-#' api <- requal::RequalAPI$new(mode = "mock")
-#' cat("Using API version:", api$api_version)
-#' segments <- api$get_segments()  # Gets mock data
-#' }
+#' # Development usage (for extension development/testing)
+#' api <- requal::RequalAPI$new()
+#' cat("Using API version:", api$version)
 #'
 #' @export
 RequalAPI <- R6::R6Class(
@@ -38,7 +35,7 @@ RequalAPI <- R6::R6Class(
     .con = NULL,
     .user_id = NULL,
     .project_id = NULL,
-
+    .development = FALSE,
     # Internal helper to connect to the bundled mock database for testing
     .get_mock_connection = function() {
       .get_mock_connection()
@@ -52,6 +49,12 @@ RequalAPI <- R6::R6Class(
       context = "data"
     ) {
       .check_permissions(user_id, project_id, private$.con, operation, context)
+    },
+    finalize = function() {
+      if (private$.development && !is.null(private$.con)) {
+        # Disconnect from the mock database
+        DBI::dbDisconnect(private$.con)
+      }
     }
   ),
 
@@ -61,11 +64,15 @@ RequalAPI <- R6::R6Class(
     #' @description
     #' Initialize a new RequalAPI instance
     #'
-    #' @param con Database connection (pool object). If \code{NULL}, will launch a bundled mock database.
+    #' @param con Database connection (pool object). If `NULL`, will launch a bundled mock database.
     #' @param user_id Integer. The authenticated user's ID (immutable).
     #' @param project_id Integer. The current project's ID (immutable).
     #'
-    #' @return A new RequalAPI instance
+    #' @return A new instance of RequalAPI R6 class
+    #'
+    #' @examples
+    #' api <- requal::RequalAPI$new()
+    #' cat("Using API version:", api$version)
     initialize = function(
       con = NULL,
       user_id = NULL,
@@ -75,6 +82,7 @@ RequalAPI <- R6::R6Class(
         private$.con <- private$.get_mock_connection()
         private$.user_id <- 1L
         private$.project_id <- 1L
+        private$.development <- TRUE
       } else {
         stopifnot(
           "user_id must be a single number" = is.numeric(user_id) &&
@@ -87,6 +95,7 @@ RequalAPI <- R6::R6Class(
         private$.project_id <- as.integer(project_id)
       }
     },
+
     #' @description
     #' Get coded segments for the current user and project
     #'
@@ -96,22 +105,21 @@ RequalAPI <- R6::R6Class(
     #'   segment_text, code_id, code_name, code_description, user_id, project_id
     #'
     #' @examples
-    #' \dontrun{
-    #' api <- RequalAPI$new()
-    #' segments <- api$get_segments()  # Get all segments user is permitted to see
-    #' }
+    #' api <- requal::RequalAPI$new()
+    #' segments <- api$get_segments()  # Gets mock segments
+    #' head(segments)
     get_segments = function() {
       tryCatch(
         {
           can_view_others <- private$.check_permissions(
-            self$user_id,
-            self$project_id,
+            private$.user_id,
+            private$.project_id,
             "other_view",
             "annotation"
           )
           can_view_others_codes <- private$.check_permissions(
-            self$user_id,
-            self$project_id,
+            private$.user_id,
+            private$.project_id,
             "other_view",
             "codebook"
           )
@@ -122,19 +130,19 @@ RequalAPI <- R6::R6Class(
 
           # Start building the segments query
           segments_query <- dplyr::tbl(private$.con, "segments") %>%
-            dplyr::filter(project_id == !!self$project_id) %>%
+            dplyr::filter(project_id == !!private$.project_id) %>%
             # Exclude memos
             # TODO: make this a parameter
             dplyr::filter(!is.na(code_id))
 
           if (!can_view_others) {
             segments_query <- segments_query %>%
-              dplyr::filter(user_id == !!self$user_id)
+              dplyr::filter(user_id == !!private$.user_id)
           }
 
           # Start building the codes query
           codes_query <- dplyr::tbl(private$.con, "codes") %>%
-            dplyr::filter(project_id == !!self$project_id) %>%
+            dplyr::filter(project_id == !!private$.project_id) %>%
             dplyr::select(
               code_id,
               code_name,
@@ -144,7 +152,7 @@ RequalAPI <- R6::R6Class(
 
           if (!can_view_others_codes) {
             codes_query <- codes_query %>%
-              dplyr::filter(created_by == !!self$user_id)
+              dplyr::filter(created_by == !!private$.user_id)
           }
 
           # Perform the join operation in the database
@@ -197,8 +205,8 @@ RequalAPI <- R6::R6Class(
         {
           if (
             !private$.check_permissions(
-              self$user_id,
-              self$project_id,
+              private$.user_id,
+              private$.project_id,
               "modify",
               "data"
             )
@@ -216,11 +224,11 @@ RequalAPI <- R6::R6Class(
 
           result <- add_input_document(
             pool = private$.con,
-            project = self$project_id,
+            project = private$.project_id,
             doc_name = doc_name,
             doc_text = doc_text,
             doc_description = doc_description,
-            user_id = self$user_id
+            user_id = private$.user_id
           )
 
           return(result)

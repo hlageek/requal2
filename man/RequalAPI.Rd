@@ -5,42 +5,45 @@
 \title{Requal API}
 \description{
 An API interface for Requal extensions to interact with qualitative data.
-Provides controlled access to segments, documents, codes, and other project data
+Provides controlled access to documents, codes, coded segments, and other project data
 while maintaining data integrity and user permissions.
 }
 \details{
 The API operates in two modes:
 \itemize{
-  \item \strong{Production mode}: Uses the actual database connection from the main app
-  \item \strong{Mock mode}: For \code{NULL} connections, uses a bundled SQLite database for testing purposes
+\item \strong{Production mode}: Uses the actual database connection from the main app
+\item \strong{Development mode}: For \code{NULL} connections, uses a bundled SQLite database for testing purposes
 }
 
 All methods follow a consistent pattern:
 \itemize{
-  \item Work within the authenticated user and project context
-  \item Return all data the user has permissions to access
-  \item Return dataframes, vectors, or logical values (quiet methods)
-  \item Return \code{NULL} on errors with warnings (\code{get_*} methods)
-  \item Return \code{FALSE} on errors with warnings (\code{write_*}, \code{edit_*}, \code{delete_*} methods)
+\item Work within the authenticated user and project context
+\item Return all data the user has permissions to access
+\item Return dataframes, vectors, or logical values (quiet methods)
+\item Return \code{NULL} on errors with warnings (\verb{get_*} methods)
+\item Return \code{FALSE} on errors with warnings (\verb{write_*}, \verb{edit_*}, \verb{delete_*} methods)
 }
 }
 \examples{
-\dontrun{
 # Mock usage (for extension development/testing)
-api <- requal::RequalAPI$new(mode = "mock")
-cat("Using API version:", api$api_version)
-segments <- api$get_segments()  # Gets mock data
-}
+api <- requal::RequalAPI$new()
+cat("Using API version:", api$version)
 
+
+## ------------------------------------------------
+## Method `RequalAPI$new`
+## ------------------------------------------------
+
+api <- requal::RequalAPI$new()
+cat("Using API version:", api$version)
 
 ## ------------------------------------------------
 ## Method `RequalAPI$get_segments`
 ## ------------------------------------------------
 
-\dontrun{
-api <- RequalAPI$new()
-segments <- api$get_segments()  # Get all segments user is permitted to see
-}
+api <- requal::RequalAPI$new()
+segments <- api$get_segments()  # Gets mock data
+head(segments)
 
 ## ------------------------------------------------
 ## Method `RequalAPI$write_document`
@@ -101,8 +104,17 @@ Initialize a new RequalAPI instance
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A new RequalAPI instance
+A new instance of RequalAPI R6 class
 }
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{api <- requal::RequalAPI$new()
+cat("Using API version:", api$version)
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RequalAPI-get_segments"></a>}}
@@ -115,16 +127,15 @@ Get coded segments for the current user and project
 
 \subsection{Returns}{
 A dataframe containing segments with associated code information, or NULL on error.
-  Returns all segments the authenticated user is permitted to see based on their permissions.
-  Columns include: segment_id, document_id, start_pos, end_pos,
-  segment_text, code_id, code_name, code_description, user_id, project_id
+Returns all segments the authenticated user is permitted to see based on their permissions.
+Columns include: segment_id, document_id, start_pos, end_pos,
+segment_text, code_id, code_name, code_description, user_id, project_id
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-api <- RequalAPI$new()
-segments <- api$get_segments()  # Get all segments user is permitted to see
-}
+\preformatted{api <- requal::RequalAPI$new()
+segments <- api$get_segments()  # Gets mock data
+head(segments)
 }
 \if{html}{\out{</div>}}
 
