@@ -2,6 +2,24 @@
 title: "Contact"
 ---
 
+## Meet the team
+
+Requal is developed through the collaboration of sociologists from the [Institute of Philosophy of the Czech Academy of Sciences](https://www.flu.cas.cz/en/), the [Institute of Sociology of the Czech Academy of Sciences](https://www.soc.cas.cz/en/), and the [Faculty of Social Sciences of Charles University](https://iss.fsv.cuni.cz/en):
+
+- [Radim Hladík](https://stss.flu.cas.cz/all/people/radim-hladik) (Main author and lead developer)
+  - general inquiries, Requal roadmap, development, features and troubleshooting, [GitHub issues](https://github.com/RE-QDA/requal/issues)
+- [Michael Škvrňák](https://www.soc.cas.cz/en/staff/michael-skvrnak) (Repository maintainer and co-developer)
+  - R package inquiries, development, features and troubleshooting, [GitHub issues](https://github.com/RE-QDA/requal/issues)
+- [Nina Fárová](https://www.soc.cas.cz/en/staff/nina-farova) (Contributor)
+  - accessibility support
+- [Martin Hájek](https://fsv.cuni.cz/en/contacts/people/14960739) (Requal ambassador and educator, user documentation co-developer)
+  - usage inquiries, recommendations for teaching QDA with Requal, [Requal Wiki](https://github.com/RE-QDA/requal/wiki/), [YouTube tutorials](https://www.youtube.com/playlist?list=PLnPxF9V0hJaKMJ2iGrpt64M0PjZlqMuKl)
+
+
+If you use Requal in your work, please cite as: 
+
+> Hladík R, Škvrňák M, Fárová N, Hájek M (2023). Requal: Shiny Application for Computer-Assisted Qualitative Data Analysis. R package version no. [...]. \<https://github.com/RE-QDA/requal\>.
+
 ## Help & contribution
 
 - Need help?
@@ -13,27 +31,9 @@ title: "Contact"
 - Have another question?
   - Send email to [team@requal.app](mailto:team@requal.app). 
 
-## Meet the team
-
-Requal is developed through the collaboration of sociologists from the [Institute of Philosophy of the Czech Academy of Sciences](https://www.flu.cas.cz/en/), the [Institute of Sociology of the Czech Academy of Sciences](https://www.soc.cas.cz/en/), and the [Faculty of Social Sciences of Charles University](https://iss.fsv.cuni.cz/en):
-
-- [Radim Hladík](https://stss.flu.cas.cz/all/people/radim-hladik)
-  - general inquiries, Requal roadmap, development, features and troubleshooting, [GitHub issues](https://github.com/RE-QDA/requal/issues)
-- [Michael Škvrňák](https://www.soc.cas.cz/en/staff/michael-skvrnak)
-  - maintenance inquiries, development, features and troubleshooting, [GitHub issues](https://github.com/RE-QDA/requal/issues)
-- [Nina Fárová](https://www.soc.cas.cz/en/staff/nina-farova)
-  - accessibility support
-- [Martin Hájek](https://fsv.cuni.cz/en/contacts/people/14960739) 
-  - usage inquiries, recommendations for teaching QDA with Requal, [Requal Wiki](https://github.com/RE-QDA/requal/wiki/), [YouTube tutorials](https://www.youtube.com/playlist?list=PLnPxF9V0hJaKMJ2iGrpt64M0PjZlqMuKl)
-
-
-If you use Requal in your work, please cite as: 
-
-> Hladík R, Škvrňák M, Fárová N, Hájek M (2023). Requal: Shiny Application for Computer-Assisted Qualitative Data Analysis. R package version no. [...]. \<https://github.com/RE-QDA/requal\>.
-
 ## Acknowledgements
 
-The application development has been supported by:
+Requal development has been supported by:
 
 - The Technology Agency of the Czech Republic, project n. TL05000054
 - CLS INFRA Fellowship Programme

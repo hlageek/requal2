@@ -11,6 +11,14 @@ website:
     left:
       - href: get_started.qmd
         text: Getting started
+      - text: Requalverse
+        menu:
+        - href: requalverse/marketplace.qmd
+          text: Requalverse Marketplace
+        - href: requalverse/for_developers.qmd
+          text: Requalverse SDK & API
+        - href: requalverse/about.qmd
+          text: About Requalverse
       - href: posts.qmd
         text: Posts
       - href: contact.qmd

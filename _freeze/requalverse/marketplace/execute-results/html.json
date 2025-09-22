@@ -1,0 +1,15 @@
+{
+  "hash": "c35e2dcad6a7823cd294c600c3fa6de6",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Requalverse Marketplace\"\ncategories:\n    - requalverse\n---\n\n\n::: {.cell asis='true'}\n::: {.cell-output-display}\n\n```{=html}\n<b>test</b>\n```\n\n:::\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
