@@ -21,22 +21,43 @@
     "text": "Requal logo\n\n\nRequal is a free and open-source CAQDAS application engineered as an interface for annotating text and qualitative data. Its primary objective is to enhance reproducibility in qualitative research by promoting transparency, openness, reflexivity, and collaboration. The application operates cross-platform in web browsers and is built with the Shiny framework for the R language environment."
   },
   {
-    "objectID": "posts/soc-coffee-2024-05-16/index.html",
-    "href": "posts/soc-coffee-2024-05-16/index.html",
-    "title": "Requal at Sociological Coffee",
+    "objectID": "requalverse/marketplace.html",
+    "href": "requalverse/marketplace.html",
+    "title": "Requalverse Marketplace",
     "section": "",
-    "text": "Martin Hájek presented Requal at Sociological Coffee held by the Department of Sociology of the Faculty of Humanities, Charles University."
+    "text": "[1] “rql.textimport” “rql.wordcloud” “requal”\nCalled from: extract_package_data(marketplace_packages[i, ]) debug: is_missing &lt;- function(x) { is.null(x) || (length(x) == 1 && is.na(x)) } debug: test &lt;- list(name = pkg\\(Package, url = if (!is_missing(pkg\\)URL)) pkg\\(URL else if (!is_missing(pkg\\)RemoteUrl)) pkg\\(RemoteUrl else NULL,\n    description = if (!is_missing(pkg\\)Description)) pkg\\(Description else NULL,\n    categories = if (!is_missing(pkg\\)metadata\\(requalverse\\)category)) unlist(pkg\\(metadata\\)requalverse\\(category) else NULL,\n    origin = if (!is_missing(pkg\\)metadata\\(requalverse\\)package_origin)) pkg\\(metadata\\)requalverse\\(package_origin else \"community\",\n    logo_url = if (!is_missing(pkg\\)metadata\\(requalverse\\)logo)) pkg\\(metadata\\)requalverse\\(logo else NULL)\ndebug: if (!is_missing(pkg\\)RemoteUrl)) pkg\\(RemoteUrl else NULL\ndebug: NULL\ndebug: NULL\ndebug: NULL\ndebug: [1] \"community\"\ndebug: NULL\ndebug: print(test)\\)name [1] NA\n$url NULL\n$description NULL\n$categories NULL\n$origin [1] “community”\n$logo_url NULL\ndebug: test Called from: extract_package_data(marketplace_packages[i, ]) debug: is_missing &lt;- function(x) { is.null(x) || (length(x) == 1 && is.na(x)) } debug: test &lt;- list(name = pkg\\(Package, url = if (!is_missing(pkg\\)URL)) pkg\\(URL else if (!is_missing(pkg\\)RemoteUrl)) pkg\\(RemoteUrl else NULL,\n    description = if (!is_missing(pkg\\)Description)) pkg\\(Description else NULL,\n    categories = if (!is_missing(pkg\\)metadata\\(requalverse\\)category)) unlist(pkg\\(metadata\\)requalverse\\(category) else NULL,\n    origin = if (!is_missing(pkg\\)metadata\\(requalverse\\)package_origin)) pkg\\(metadata\\)requalverse\\(package_origin else \"community\",\n    logo_url = if (!is_missing(pkg\\)metadata\\(requalverse\\)logo)) pkg\\(metadata\\)requalverse\\(logo else NULL)\ndebug: pkg\\)URL debug: pkg\\(Description\ndebug: NULL\ndebug: [1] \"community\"\ndebug: NULL\ndebug: print(test)\\)name character(0)\n$url character(0)\n$description character(0)\n$categories NULL\n$origin [1] “community”\n$logo_url NULL\ndebug: test $name [1] NA\n$url NULL\n$description NULL\n$categories NULL\n$origin [1] “community”\n$logo_url NULL\n$name character(0)\n$url character(0)\n$description character(0)\n$categories NULL\n$origin [1] “community”\n$logo_url NULL\noutsideAvailable Packages\n\nNACOMMUNITY\n\nCOMMUNITY"
   },
   {
-    "objectID": "posts/rieppeleon/index.html",
-    "href": "posts/rieppeleon/index.html",
-    "title": "Rieppeleon (v1.1.3)",
+    "objectID": "posts/ IASSIST-webinar-2025-06-12/index.html",
+    "href": "posts/ IASSIST-webinar-2025-06-12/index.html",
+    "title": "Introduction to Requal: Increasing transparency and reflexivity of qualitative coding",
     "section": "",
-    "text": "Rieppeleon emphasizes enhancements in code editing and the annotation experience. After this release, the development version will transition to a refactored backend functionality. This approach ensures that a version with a stable, time-tested backend receives the latest UI improvements.\nFor more details, you can read the full Rieppeleon release notes.\nTo update your Requal installation, download the requal_1.1.3.9001.tar.gz file from the Releases page. Then, run the remotes::install_local(file.choose()) command in the R console.\nSource: Requal GitHub Discussions"
+    "text": "As a part of the Workshop Series on Tools for Qualitative Research, organized by International Association for Social Science Information Service and Technology (IASSIST), a virtual webinar was held on June 12, 2025. Martin Hájek gave a presentation entitled “Introduction to Requal: Increasing Transparency and Reflexivity of Qualitative Coding.” The webinar offered an overview of Requal’s functionality, which was discussed from the perspective of a researcher striving to make qualitative coding more reproducible.\nFor those who missed the live event, a recording of the webinar is available for viewing. You can watch the full presentation below:\n\nPresentation materials are available from the Zenodo repository.\nSource: IASSIST YouTube Channel"
+  },
+  {
+    "objectID": "posts/thuringothyris/index.html",
+    "href": "posts/thuringothyris/index.html",
+    "title": "Thuringothyris (v1.1.2)",
+    "section": "",
+    "text": "The Thuringothyris update brings several smaller changes to the Requal user interface, along with bug fixes and improvements such as more export functions for memos and codebooks. Thuringothyris is intended as a precursor to the upcoming more substantial enhancements.\nFor more details, you can read the full Thuringothyris release notes.\nTo update your Requal installation, download the requal_1.1.2.9002.tar.gz file from the Releases page. Then, run the remotes::install_local(file.choose()) command in the R console.\nSource: Requal GitHub Discussions"
+  },
+  {
+    "objectID": "posts/try-macOS-install/index.html",
+    "href": "posts/try-macOS-install/index.html",
+    "title": "Try Requal on macOS",
+    "section": "",
+    "text": "Running Requal through R is and will remain the primary way to use the app. This has several advantages, including the ability to run Requal on different operating systems or access to messages sent from Requal to the R console. However, for the ease of use, we are also experimenting with a standalone version of Requal. A first version of standalone Requal for macOS is now available.\nInstructions:\nSimply download and mount the disk image file and move the Requal.app file to your Applications folder.\nAs the Requal macOS app is not certified by Apple, you will be asked for a permission to open it when running for the first time. Go to System Preferences -&gt; Security & Privacy and select Open Anyway for Requal.app.\nThis is still in experimental stage and we are providing the macOS app for beta-testing. We are curious to hear about your experience (both negative and positive) with running standalone Requal, e.g. in Requal Discussions.\nOf course, if the standalone app is not working, you can always use Requal through the standard R installation."
   },
   {
     "objectID": "contact.html",
     "href": "contact.html",
+    "title": "Contact",
+    "section": "",
+    "text": "Requal is developed through the collaboration of sociologists from the Institute of Philosophy of the Czech Academy of Sciences, the Institute of Sociology of the Czech Academy of Sciences, and the Faculty of Social Sciences of Charles University:\n\nRadim Hladík (Main author and lead developer)\n\ngeneral inquiries, Requal roadmap, development, features and troubleshooting, GitHub issues\n\nMichael Škvrňák (Repository maintainer and co-developer)\n\nR package inquiries, development, features and troubleshooting, GitHub issues\n\nNina Fárová (Contributor)\n\naccessibility support\n\nMartin Hájek (Requal ambassador and educator, user documentation co-developer)\n\nusage inquiries, recommendations for teaching QDA with Requal, Requal Wiki, YouTube tutorials\n\n\nIf you use Requal in your work, please cite as:\n\nHladík R, Škvrňák M, Fárová N, Hájek M (2023). Requal: Shiny Application for Computer-Assisted Qualitative Data Analysis. R package version no. […]. &lt;https://github.com/RE-QDA/requal&gt;."
+  },
+  {
+    "objectID": "contact.html#meet-the-team",
+    "href": "contact.html#meet-the-team",
     "title": "Contact",
     "section": "",
     "text": "Requal is developed through the collaboration of sociologists from the Institute of Philosophy of the Czech Academy of Sciences, the Institute of Sociology of the Czech Academy of Sciences, and the Faculty of Social Sciences of Charles University:\n\nRadim Hladík (Main author and lead developer)\n\ngeneral inquiries, Requal roadmap, development, features and troubleshooting, GitHub issues\n\nMichael Škvrňák (Repository maintainer and co-developer)\n\nR package inquiries, development, features and troubleshooting, GitHub issues\n\nNina Fárová (Contributor)\n\naccessibility support\n\nMartin Hájek (Requal ambassador and educator, user documentation co-developer)\n\nusage inquiries, recommendations for teaching QDA with Requal, Requal Wiki, YouTube tutorials\n\n\nIf you use Requal in your work, please cite as:\n\nHladík R, Škvrňák M, Fárová N, Hájek M (2023). Requal: Shiny Application for Computer-Assisted Qualitative Data Analysis. R package version no. […]. &lt;https://github.com/RE-QDA/requal&gt;."
@@ -47,13 +68,6 @@
     "title": "Contact",
     "section": "Help & contribution",
     "text": "Help & contribution\n\nNeed help?\n\nConsult the Requal Wiki\n\nHave an issue?\n\nReport it via GitHub Issues.\n\nWant to share your ideas or tips?\n\nContribute to the Requal Discussions.\n\nHave another question?\n\nSend email to team@requal.app."
-  },
-  {
-    "objectID": "contact.html#meet-the-team",
-    "href": "contact.html#meet-the-team",
-    "title": "Contact",
-    "section": "",
-    "text": "Requal is developed through the collaboration of sociologists from the Institute of Philosophy of the Czech Academy of Sciences, the Institute of Sociology of the Czech Academy of Sciences, and the Faculty of Social Sciences of Charles University:\n\nRadim Hladík (Main author and lead developer)\n\ngeneral inquiries, Requal roadmap, development, features and troubleshooting, GitHub issues\n\nMichael Škvrňák (Repository maintainer and co-developer)\n\nR package inquiries, development, features and troubleshooting, GitHub issues\n\nNina Fárová (Contributor)\n\naccessibility support\n\nMartin Hájek (Requal ambassador and educator, user documentation co-developer)\n\nusage inquiries, recommendations for teaching QDA with Requal, Requal Wiki, YouTube tutorials\n\n\nIf you use Requal in your work, please cite as:\n\nHladík R, Škvrňák M, Fárová N, Hájek M (2023). Requal: Shiny Application for Computer-Assisted Qualitative Data Analysis. R package version no. […]. &lt;https://github.com/RE-QDA/requal&gt;."
   },
   {
     "objectID": "contact.html#acknowledgements",
@@ -70,57 +84,22 @@
     "text": "Other FOSS CAQDAS\nRequal is a proud member of the community of free and open source software for computer-assisted qualitative data analysis (FOSS CAQDAS). You can explore other similar projects:\n\nRQDA - this deserves a special mention as our original source of motivation and inspiration for conducting QDA in R environment\nTaguette - straightforward and collaborative online or offline qualitative coding application\nLibreQDA - a Taguette fork with some nice additional features such as code coloring and overlay or academic identity logon\nQualCoder - a feature-rich alternative to proprietary CAQDAS, including processing of audiovisual data\nOpenQDA - open-source collaborative CAQDAS in the cloud\nQCoder - lightweight tool for coding text and its further analysis with R\nROCK - R implementation of quantitative ethnography approach to QDA with a focus on reproducibility\nIramuteq - graphical user interface for geometrical text analyses in R\nCATMA - annotation and query software tuned for literary and historical documents\nSonal - a free Windows application particularly well-suited for qualitative analysis of audio interviews and their transcriptions"
   },
   {
-    "objectID": "posts/try-macOS-install/index.html",
-    "href": "posts/try-macOS-install/index.html",
-    "title": "Try Requal on macOS",
+    "objectID": "posts/rieppeleon/index.html",
+    "href": "posts/rieppeleon/index.html",
+    "title": "Rieppeleon (v1.1.3)",
     "section": "",
-    "text": "Running Requal through R is and will remain the primary way to use the app. This has several advantages, including the ability to run Requal on different operating systems or access to messages sent from Requal to the R console. However, for the ease of use, we are also experimenting with a standalone version of Requal. A first version of standalone Requal for macOS is now available.\nInstructions:\nSimply download and mount the disk image file and move the Requal.app file to your Applications folder.\nAs the Requal macOS app is not certified by Apple, you will be asked for a permission to open it when running for the first time. Go to System Preferences -&gt; Security & Privacy and select Open Anyway for Requal.app.\nThis is still in experimental stage and we are providing the macOS app for beta-testing. We are curious to hear about your experience (both negative and positive) with running standalone Requal, e.g. in Requal Discussions.\nOf course, if the standalone app is not working, you can always use Requal through the standard R installation."
+    "text": "Rieppeleon emphasizes enhancements in code editing and the annotation experience. After this release, the development version will transition to a refactored backend functionality. This approach ensures that a version with a stable, time-tested backend receives the latest UI improvements.\nFor more details, you can read the full Rieppeleon release notes.\nTo update your Requal installation, download the requal_1.1.3.9001.tar.gz file from the Releases page. Then, run the remotes::install_local(file.choose()) command in the R console.\nSource: Requal GitHub Discussions"
   },
   {
-    "objectID": "posts/thuringothyris/index.html",
-    "href": "posts/thuringothyris/index.html",
-    "title": "Thuringothyris (v1.1.2)",
+    "objectID": "posts/soc-coffee-2024-05-16/index.html",
+    "href": "posts/soc-coffee-2024-05-16/index.html",
+    "title": "Requal at Sociological Coffee",
     "section": "",
-    "text": "The Thuringothyris update brings several smaller changes to the Requal user interface, along with bug fixes and improvements such as more export functions for memos and codebooks. Thuringothyris is intended as a precursor to the upcoming more substantial enhancements.\nFor more details, you can read the full Thuringothyris release notes.\nTo update your Requal installation, download the requal_1.1.2.9002.tar.gz file from the Releases page. Then, run the remotes::install_local(file.choose()) command in the R console.\nSource: Requal GitHub Discussions"
-  },
-  {
-    "objectID": "posts/ IASSIST-webinar-2025-06-12/index.html",
-    "href": "posts/ IASSIST-webinar-2025-06-12/index.html",
-    "title": "Introduction to Requal: Increasing transparency and reflexivity of qualitative coding",
-    "section": "",
-    "text": "As a part of the Workshop Series on Tools for Qualitative Research, organized by International Association for Social Science Information Service and Technology (IASSIST), a virtual webinar was held on June 12, 2025. Martin Hájek gave a presentation entitled “Introduction to Requal: Increasing Transparency and Reflexivity of Qualitative Coding.” The webinar offered an overview of Requal’s functionality, which was discussed from the perspective of a researcher striving to make qualitative coding more reproducible.\nFor those who missed the live event, a recording of the webinar is available for viewing. You can watch the full presentation below:\n\nPresentation materials are available from the Zenodo repository.\nSource: IASSIST YouTube Channel"
-  },
-  {
-    "objectID": "posts.html",
-    "href": "posts.html",
-    "title": "Requal posts",
-    "section": "",
-    "text": "Try Requal on macOS\n\n\n\nsoftware\n\n\n\nInstalling standalone Requal on macOS (experimental).\n\n\n\n\n\nAug 15, 2025\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nIntroduction to Requal: Increasing transparency and reflexivity of qualitative coding\n\n\n\npresentations\n\n\n\nRecording of the IASSIST webinar.\n\n\n\n\n\nAug 11, 2025\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nRieppeleon (v1.1.3)\n\n\n\nreleases\n\n\n\nAnnouncement of a new Requal release.\n\n\n\n\n\nFeb 23, 2025\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nThuringothyris (v1.1.2)\n\n\n\nreleases\n\n\n\nAnnouncement of a new Requal release.\n\n\n\n\n\nMay 18, 2024\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nRequal at Sociological Coffee\n\n\n\nevents\n\npresentations\n\n\n\nMartin Hájek presented Requal at Charles University.\n\n\n\n\n\nMay 16, 2024\n\n\nrequal\n\n\n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "requalverse/marketplace.html",
-    "href": "requalverse/marketplace.html",
-    "title": "Requalverse Marketplace",
-    "section": "",
-    "text": "test"
+    "text": "Martin Hájek presented Requal at Sociological Coffee held by the Department of Sociology of the Faculty of Humanities, Charles University."
   },
   {
     "objectID": "requalverse/about.html",
     "href": "requalverse/about.html",
-    "title": "About Requalverse",
-    "section": "",
-    "text": "Under construction…"
-  },
-  {
-    "objectID": "requalverse/sdk.html",
-    "href": "requalverse/sdk.html",
-    "title": "Requalverse SDK",
-    "section": "",
-    "text": "Under construction…"
-  },
-  {
-    "objectID": "requalverse/about_requalverse.html",
-    "href": "requalverse/about_requalverse.html",
     "title": "About Requalverse",
     "section": "",
     "text": "Under construction…"
@@ -131,5 +110,12 @@
     "title": "For developers",
     "section": "",
     "text": "Under construction…"
+  },
+  {
+    "objectID": "posts.html",
+    "href": "posts.html",
+    "title": "Requal posts",
+    "section": "",
+    "text": "Try Requal on macOS\n\n\n\nsoftware\n\n\n\nInstalling standalone Requal on macOS (experimental).\n\n\n\n\n\nAug 15, 2025\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nIntroduction to Requal: Increasing transparency and reflexivity of qualitative coding\n\n\n\npresentations\n\n\n\nRecording of the IASSIST webinar.\n\n\n\n\n\nAug 11, 2025\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nRieppeleon (v1.1.3)\n\n\n\nreleases\n\n\n\nAnnouncement of a new Requal release.\n\n\n\n\n\nFeb 23, 2025\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nThuringothyris (v1.1.2)\n\n\n\nreleases\n\n\n\nAnnouncement of a new Requal release.\n\n\n\n\n\nMay 18, 2024\n\n\nrequal\n\n\n\n\n\n\n\n\n\n\n\n\nRequal at Sociological Coffee\n\n\n\nevents\n\npresentations\n\n\n\nMartin Hájek presented Requal at Charles University.\n\n\n\n\n\nMay 16, 2024\n\n\nrequal\n\n\n\n\n\nNo matching items"
   }
 ]

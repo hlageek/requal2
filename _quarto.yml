@@ -44,7 +44,9 @@ website:
 format:
   html:
     theme: morph
-    css: styles.css
+    css:    
+    - styles.css
+    - requalverse/requalverse_styles.css
     toc: true
 
 

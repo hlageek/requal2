@@ -1,0 +1,129 @@
+ .requalverse-card {
+        border-radius: 12px;
+      }
+      
+      .requalverse-header {
+        display: flex; 
+        align-items: center; 
+        margin-bottom: 15px;
+      }
+      
+      .requalverse-logo-container {
+        margin-right: 15px;
+      }
+      
+      .requalverse-logo {
+        width: 40px; 
+        height: 40px; 
+        object-fit: cover; 
+        border-radius: 6px;
+      }
+      
+      .requalverse-icon-placeholder {
+        width: 40px; 
+        height: 40px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        background-color: #f8f9fa; 
+        border-radius: 6px; 
+        color: #6c757d;
+      }
+      
+      .requalverse-title-badge-container {
+        flex: 1; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+      }
+      
+      .requalverse-badge {
+        padding: 4px 8px; 
+        border-radius: 6px; 
+        font-size: 12px; 
+        font-weight: bold;
+      }
+      
+      .requalverse-badge-requal {
+        background-color: #007bff; 
+        color: white;
+      }
+      
+      .requalverse-badge-verified {
+        background-color: #28a745; 
+        color: white;
+      }
+      
+      .requalverse-badge-community {
+        background-color: #6c757d; 
+        color: white;
+      }
+
+            /* CSS-only filtering styles */
+      .filter-radio {
+        display: none;
+      }
+      
+      .filter-label {
+        display: inline-block;
+        padding: 8px 16px;
+        margin: 4px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9em;
+      }
+      
+      .filter-label:hover {
+        background-color: #e9ecef;
+      }
+      
+      .filter-radio:checked + .filter-label {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+      }
+      
+      /* Hide all packages by default when filtering is active */
+      .package-card {
+        display: block;
+      }
+      
+      /* Show all packages when "All" is selected */
+      #filter-all:checked ~ .packages-container .package-card {
+        display: block;
+      }
+      
+      /* Hide all first when any specific filter is selected */
+      .filter-radio:not(#filter-all):checked ~ .packages-container .package-card {
+        display: none;
+      }
+      
+      /* Show specific categories when their filter is selected */
+      #filter-visualization:checked ~ .packages-container .package-card[data-category*="visualization"] {
+        display: block;
+      }
+      
+      #filter-import:checked ~ .packages-container .package-card[data-category*="import"] {
+        display: block;
+      }
+      
+      #filter-text-analysis:checked ~ .packages-container .package-card[data-category*="text-analysis"] {
+        display: block;
+      }
+      
+      #filter-text-processing:checked ~ .packages-container .package-card[data-category*="text-processing"] {
+        display: block;
+      }
+      
+      .filter-container {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+      }
+      .text-muted {
+        display: inline;
+      }
