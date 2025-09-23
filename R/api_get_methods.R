@@ -16,29 +16,6 @@
 get_segments_impl <- function(private) {
   tryCatch(
     {
-      can_view_others <- private$.check_permissions(
-        "annotation_other_view"
-      )
-      can_view_others_codes <- private$.check_permissions(
-        "codebook_other_view"
-      )
-
-      if (is.null(private$.con)) {
-        stop("Database connection is not set.")
-      }
-
-      # Start building the segments query
-      segments_query <- dplyr::tbl(private$.con, "segments") %>%
-        dplyr::filter(project_id == !!private$.project_id) %>%
-        # Exclude memos
-        # TODO: make this a parameter
-        dplyr::filter(!is.na(code_id))
-
-      if (!can_view_others) {
-        segments_query <- segments_query %>%
-          dplyr::filter(user_id == !!private$.user_id)
-      }
-
       # Start building the codes query
       codes_query <- dplyr::tbl(private$.con, "codes") %>%
         dplyr::filter(project_id == !!private$.project_id) %>%
@@ -55,7 +32,7 @@ get_segments_impl <- function(private) {
       }
 
       # Perform the join operation in the database
-      data <- segments_query %>%
+      data <- self$segments %>%
         dplyr::inner_join(codes_query, by = "code_id") %>%
         dplyr::select(
           project_id,

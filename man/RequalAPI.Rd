@@ -82,6 +82,11 @@ For examples, see the documentation for the \code{RequalAPI$new()} method.
 \item{\code{user_id}}{Integer. The authenticated user's ID (read-only)}
 
 \item{\code{project_id}}{Integer. The current project's ID (read-only)}
+
+\item{\code{segments}}{Coded segments query object.
+
+A \code{tbl_sql}-class query object representing coded segments
+in compliance with the user's permissions for current project.}
 }
 \if{html}{\out{</div>}}
 }
