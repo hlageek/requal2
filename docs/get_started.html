@@ -136,6 +136,7 @@ cookieconsent.run({
 
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="requalverse/requalverse_styles.css">
+<link rel="stylesheet" href="requalverse/requalverse-category-filters.css">
 </head>
 
 <body class="nav-fixed quarto-light">
@@ -224,9 +225,9 @@ cookieconsent.run({
   <ul>
   <li><a href="#installation" id="toc-installation" class="nav-link active" data-scroll-target="#installation">Installation</a>
   <ul class="collapse">
-  <li><a href="#server-version" id="toc-server-version" class="nav-link" data-scroll-target="#server-version">Server version</a></li>
   <li><a href="#desktop-version" id="toc-desktop-version" class="nav-link" data-scroll-target="#desktop-version">Desktop version</a></li>
   <li><a href="#development-version" id="toc-development-version" class="nav-link" data-scroll-target="#development-version">Development version</a></li>
+  <li><a href="#server-version" id="toc-server-version" class="nav-link" data-scroll-target="#server-version">Server version</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -253,7 +254,7 @@ cookieconsent.run({
 </header>
 
 
-<p>Requal provides basic functionality for annotating documents in plain text with user-defined codes. The annotated text segments can be filtered and exported. Modules to enhance reproducibility help users in making their analysis more transparent and reflexive.</p>
+<p>Requal provides basic functionality for annotating documents in plain text with user-defined codes. The annotated text segments can be retrieved, filtered, and exported. Modules to enhance reproducibility help users in making their analysis more transparent and reflexive.</p>
 <p>You can try the demo version of Requal on the server of <a href="https://iss.fsv.cuni.cz/">Charles University</a>:</p>
 <div class="center">
 <p><a href="https://requal.fsv.cuni.cz/demo">https://requal.fsv.cuni.cz/demo</a></p>
@@ -262,11 +263,14 @@ password: requal123</code></pre>
 </div>
 <p>You have multiple options to install and use Requal, depending on your preferences and resources:</p>
 <ul>
-<li><a href="#server-version">Server option</a> - You can self-host Requal on a server and collaborate with others through a Shiny-server; the data is stored in a remote PostgreSQL database.</li>
 <li><a href="#desktop-version">Desktop option</a> - You can run Requal locally on your machine in the R environment from a release (stable) version; the data is stored in a local SQLite database.</li>
-<li><a href="#development-version">Development option</a> - Requal is under active development, and for both server and desktop usage, you might prefer installing the development version to access the latest features, though you may also encounter some unresolved bugs.</li>
-<li><a href="./posts/try-macOS-install/index.html">Standalone option</a> - The standalone option for desktop usage is packaged using Electron and does not require prior installation of R on your machine. Currently, this is experimental and available only for macOS. The macOS-built version may lag slightly behind the development version in terms of features.</li>
+<li><a href="#development-version">Development option</a> - Requal is under active development, and for both server and desktop usage, you might prefer installing the development version to access the latest features if you can tolerate some unresolved bugs.</li>
+<li><a href="./posts/try-macOS-install/index.html">Standalone option</a> - The standalone option for desktop usage is packaged using Electron and does not require prior installation of R on your machine. Currently, this is experimental and available only as a macOS build.</li>
+<li><a href="#server-version">Server option</a> - You can self-host Requal on a server and collaborate with others through a Shiny-server; the data is stored in a remote PostgreSQL database.</li>
 </ul>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<p>This section provides instructions for different options to install Requal.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -280,13 +284,6 @@ Tip for adventurous macOS users
 <p>Try directly installing the standalone <a href="./posts/try-macOS-install/index.html">macOS version of the Requal app</a> (experimental).</p>
 </div>
 </div>
-<section id="installation" class="level2">
-<h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<p>This section provides instructions for different options to install Requal.</p>
-<section id="server-version" class="level3">
-<h3 class="anchored" data-anchor-id="server-version">Server version</h3>
-<p>The server version is intended for online teamwork or teaching. To use the server version, you need to install Requal on a server or ask your organization’s IT staff to install it for you. <a href="https://github.com/RE-QDA/requal/wiki/">Requal Wiki</a> contains a basic guide for a <a href="https://github.com/RE-QDA/requal/wiki/Server-setup">server setup</a>.</p>
-</section>
 <section id="desktop-version" class="level3">
 <h3 class="anchored" data-anchor-id="desktop-version">Desktop version</h3>
 <p>To use Requal, you need to have the R language installed and running on your machine. You can download and install R from <a href="https://cloud.r-project.org">here</a>. You will also need a web browser with JavaScript support (i.e.&nbsp;any of the standard issue browsers like Firefox, Chrome, or Safari).</p>
@@ -316,6 +313,10 @@ Tip for adventurous macOS users
 <p>To access the latest features, you can install the development version of Requal from the developer’s <a href="https://hlageek.r-universe.dev/requal">R-Universe</a> repository by running this code in R:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r copy code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"requal"</span>, <span class="at">repos =</span> <span class="fu">c</span>(<span class="st">"https://hlageek.r-universe.dev"</span>, <span class="st">"https://cloud.r-project.org"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Usage is the same as in the server and desktop versions.</p>
+</section>
+<section id="server-version" class="level3">
+<h3 class="anchored" data-anchor-id="server-version">Server version</h3>
+<p>The server version is intended for online teamwork or teaching. To use the server version, you need to install Requal on a server or ask your organization’s IT staff to install it for you. <a href="https://github.com/RE-QDA/requal/wiki/">Requal Wiki</a> contains a basic guide for a <a href="https://github.com/RE-QDA/requal/wiki/Server-setup">server setup</a>.</p>
 
 
 </section>

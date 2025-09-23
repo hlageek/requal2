@@ -4,6 +4,21 @@ categories:
   - requalverse
 ---
 
+## How to install and use extension modules
+
+Requal extensions are installed as any other R package. To use an extension module, simply install it according to the developer's instructions and run Requal as usual. If the extension module is available on your system, it will be automatically detected when you start the Requal app. You can access and launch extensions from the Modules tab in the Requal app.
+
+::: {.callout-warning}
+Requal extension modules have access to your project, so you should only install extensions from trusted sources. It is recommened to make a backup of your project database before launching an unknown extension. **Listing of an extension on this page does NOT guarantee that it is safe to use.**
+:::
+
+## Available extension modules
+
+::: {.callout-note}
+Because this is a static website, the marketplace information may not be up to date.  
+Last updated: `r format(Sys.time(), "%B %d, %Y")`.
+:::
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -184,50 +199,11 @@ generate_css_selectors <- function(package_data_list) {
   all_categories <- all_categories[nzchar(all_categories)]
   
   # Generate CSS content including toggle functionality
-  css_content <- c(
-    "/* Generated CSS selectors for requalverse categories */",
-    "",
-    "/* Filter toggle functionality */",
-    ".filter-toggle {",
-    "  display: inline-block;",
-    "  padding: 8px 16px;",
-    "  margin-bottom: 1rem;",
-    "  background-color: #6c757d;",
-    "  color: white;",
-    "  border: none;",
-    "  border-radius: 6px;",
-    "  cursor: pointer;",
-    "  font-size: 0.9em;",
-    "  transition: background-color 0.2s;",
-    "}",
-    "",
-    ".filter-toggle:hover {",
-    "  background-color: #5a6268;",
-    "}",
-    "",
-    ".filters-only {",
-    "  display: none;",
-    "  margin-bottom: 1rem;",
-    "}",
-    "",
-    ".filters-only.show {",
-    "  display: block;",
-    "}",
-    "",
-    ".filters-only-content {",
-    "  display: none;",
-    "}",
-    "",
-    ".filters-only.show ~ .filters-only-content {",
-    "  display: inline-block;",
-    "}",
-    "",
-    map_chr(all_categories, function(cat) {
+  css_content <- map_chr(all_categories, function(cat) {
       cat_id <- paste0("filter-", tolower(gsub("[^a-z]", "-", cat)))
       cat_selector <- cat  # Keep original category name for data-category matching
       sprintf("#%s:checked ~ .packages-container .package-card[data-category*=\"%s\"] {\n  display: block;\n}", cat_id, cat_selector)
     })
-  )
   
   # Write to file
   writeLines(css_content, "requalverse-category-filters.css")
@@ -248,7 +224,6 @@ package_cards <- map(package_data_list, create_card_html)
 # Create the final listing
 div(
   class = "container-fluid",
-  h2("Available Packages", class = "mb-4"),
   
   # Toggle button for filters
   tags$button(

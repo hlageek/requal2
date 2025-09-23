@@ -100,31 +100,41 @@ display: block;
 display: none;
 }
 
-/* Show specific categories when their filter is selected */
-/* Show specific categories when their filter is selected */
-#filter-visualization:checked ~ .packages-container .package-card[data-category*="visualization"] {
-display: block;
+/* Filter toggle functionality */
+.filter-toggle {
+  display: inline-block;
+  padding: 8px 16px;
+  margin-bottom: 1rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s;
 }
 
-#filter-import:checked ~ .packages-container .package-card[data-category*="import"] {
-display: block;
+.filter-toggle:hover {
+  background-color: #5a6268;
 }
 
-#filter-text-analysis:checked ~ .packages-container .package-card[data-category*="text analysis"] {
-display: block;
+.filters-only {
+  display: none;
+  margin-bottom: 1rem;
 }
 
-#filter-convert:checked ~ .packages-container .package-card[data-category*="convert"] {
-display: block;
+.filters-only.show {
+  display: block;
 }
 
-#filter-documents:checked ~ .packages-container .package-card[data-category*="documents"] {
-display: block;
+.filters-only-content {
+  display: none;
 }
 
-#filter-transcriptions:checked ~ .packages-container .package-card[data-category*="transcriptions"] {
-display: block;
+.filters-only.show ~ .filters-only-content {
+  display: inline-block;
 }
+
 
 .filter-container {
 margin-bottom: 2rem;

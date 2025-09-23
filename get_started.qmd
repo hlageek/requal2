@@ -2,7 +2,7 @@
 title: "Getting started"
 ---
 
-Requal provides basic functionality for annotating documents in plain text with user-defined codes. The annotated text segments can be filtered and exported. Modules to enhance reproducibility help users in making their analysis more transparent and reflexive.
+Requal provides basic functionality for annotating documents in plain text with user-defined codes. The annotated text segments can be retrieved, filtered, and exported. Modules to enhance reproducibility help users in making their analysis more transparent and reflexive.
 
 You can try the demo version of Requal on the server of [Charles University](https://iss.fsv.cuni.cz/):
 
@@ -18,24 +18,20 @@ password: requal123
 
 You have multiple options to install and use Requal, depending on your preferences and resources:
 
-- [Server option](#server-version) - You can self-host Requal on a server and collaborate with others through a Shiny-server; the data is stored in a remote PostgreSQL database.
 - [Desktop option](#desktop-version) - You can run Requal locally on your machine in the R environment from a release (stable) version; the data is stored in a local SQLite database.
-- [Development option](#development-version) - Requal is under active development, and for both server and desktop usage, you might prefer installing the development version to access the latest features, though you may also encounter some unresolved bugs.
-- [Standalone option](/posts/try-macOS-install/index.qmd) - The standalone option for desktop usage is packaged using Electron and does not require prior installation of R on your machine. Currently, this is experimental and available only for macOS. The macOS-built version may lag slightly behind the development version in terms of features.
+- [Development option](#development-version) - Requal is under active development, and for both server and desktop usage, you might prefer installing the development version to access the latest features if you can tolerate some unresolved bugs.
+- [Standalone option](/posts/try-macOS-install/index.qmd) - The standalone option for desktop usage is packaged using Electron and does not require prior installation of R on your machine. Currently, this is experimental and available only as a macOS build.
+- [Server option](#server-version) - You can self-host Requal on a server and collaborate with others through a Shiny-server; the data is stored in a remote PostgreSQL database.
+
+## Installation
+
+This section provides instructions for different options to install Requal.
 
 ::: {.callout-tip}
 ## Tip for adventurous macOS users
 
 Try directly installing the standalone [macOS version of the Requal app](/posts/try-macOS-install/index.qmd) (experimental).
 :::
-
-## Installation
-
-This section provides instructions for different options to install Requal.
-
-### Server version {#server-version}
-
-The server version is intended for online teamwork or teaching. To use the server version, you need to install Requal on a server or ask your organization's IT staff to install it for you. [Requal Wiki](https://github.com/RE-QDA/requal/wiki/) contains a basic guide for a [server setup](https://github.com/RE-QDA/requal/wiki/Server-setup). 
 
 ### Desktop version {#desktop-version}
 
@@ -76,3 +72,7 @@ install.packages("requal", repos = c("https://hlageek.r-universe.dev", "https://
 ```
 
 Usage is the same as in the server and desktop versions.
+
+### Server version {#server-version}
+
+The server version is intended for online teamwork or teaching. To use the server version, you need to install Requal on a server or ask your organization's IT staff to install it for you. [Requal Wiki](https://github.com/RE-QDA/requal/wiki/) contains a basic guide for a [server setup](https://github.com/RE-QDA/requal/wiki/Server-setup). 

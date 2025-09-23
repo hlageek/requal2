@@ -12,7 +12,7 @@ Requal is developed through the collaboration of sociologists from the [Institut
   - R package inquiries, development, features and troubleshooting, [GitHub issues](https://github.com/RE-QDA/requal/issues)
 - [Nina Fárová](https://www.soc.cas.cz/en/staff/nina-farova) (Contributor)
   - accessibility support
-- [Martin Hájek](https://fsv.cuni.cz/en/contacts/people/14960739) (Requal ambassador and educator, user documentation co-developer)
+- [Martin Hájek](https://fsv.cuni.cz/en/contacts/people/14960739) (Requal ambassador and educator, user documentation creator)
   - usage inquiries, recommendations for teaching QDA with Requal, [Requal Wiki](https://github.com/RE-QDA/requal/wiki/), [YouTube tutorials](https://www.youtube.com/playlist?list=PLnPxF9V0hJaKMJ2iGrpt64M0PjZlqMuKl)
 
 
