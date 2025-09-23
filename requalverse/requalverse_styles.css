@@ -58,72 +58,77 @@
         background-color: #6c757d; 
         color: white;
       }
+/* CSS-only filtering styles */
+.filter-radio {
+display: none;
+}
 
-            /* CSS-only filtering styles */
-      .filter-radio {
-        display: none;
-      }
-      
-      .filter-label {
-        display: inline-block;
-        padding: 8px 16px;
-        margin: 4px;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.9em;
-      }
-      
-      .filter-label:hover {
-        background-color: #e9ecef;
-      }
-      
-      .filter-radio:checked + .filter-label {
-        background-color: #007bff;
-        color: white;
-        border-color: #007bff;
-      }
-      
-      /* Hide all packages by default when filtering is active */
-      .package-card {
-        display: block;
-      }
-      
-      /* Show all packages when "All" is selected */
-      #filter-all:checked ~ .packages-container .package-card {
-        display: block;
-      }
-      
-      /* Hide all first when any specific filter is selected */
-      .filter-radio:not(#filter-all):checked ~ .packages-container .package-card {
-        display: none;
-      }
-      
-      /* Show specific categories when their filter is selected */
-      #filter-visualization:checked ~ .packages-container .package-card[data-category*="visualization"] {
-        display: block;
-      }
-      
-      #filter-import:checked ~ .packages-container .package-card[data-category*="import"] {
-        display: block;
-      }
-      
-      #filter-text-analysis:checked ~ .packages-container .package-card[data-category*="text-analysis"] {
-        display: block;
-      }
-      
-      #filter-text-processing:checked ~ .packages-container .package-card[data-category*="text-processing"] {
-        display: block;
-      }
-      
-      .filter-container {
-        margin-bottom: 2rem;
-        padding: 1rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-      }
-      .text-muted {
-        display: inline;
-      }
+.filter-label {
+display: inline-block;
+padding: 8px 16px;
+margin: 4px;
+background-color: #f8f9fa;
+border: 1px solid #dee2e6;
+border-radius: 6px;
+cursor: pointer;
+transition: all 0.2s;
+font-size: 0.9em;
+}
+
+.filter-label:hover {
+background-color: #e9ecef;
+}
+
+.filter-radio:checked + .filter-label {
+background-color: #007bff;
+color: white;
+border-color: #007bff;
+}
+
+/* Hide all packages by default when filtering is active */
+.package-card {
+display: block;
+}
+
+/* Show all packages when "All" is selected */
+#filter-all:checked ~ .packages-container .package-card {
+display: block;
+}
+
+/* Hide all first when any specific filter is selected */
+.filter-radio:not(#filter-all):checked ~ .packages-container .package-card {
+display: none;
+}
+
+/* Show specific categories when their filter is selected */
+/* Show specific categories when their filter is selected */
+#filter-visualization:checked ~ .packages-container .package-card[data-category*="visualization"] {
+display: block;
+}
+
+#filter-import:checked ~ .packages-container .package-card[data-category*="import"] {
+display: block;
+}
+
+#filter-text-analysis:checked ~ .packages-container .package-card[data-category*="text analysis"] {
+display: block;
+}
+
+#filter-convert:checked ~ .packages-container .package-card[data-category*="convert"] {
+display: block;
+}
+
+#filter-documents:checked ~ .packages-container .package-card[data-category*="documents"] {
+display: block;
+}
+
+#filter-transcriptions:checked ~ .packages-container .package-card[data-category*="transcriptions"] {
+display: block;
+}
+
+.filter-container {
+margin-bottom: 2rem;
+padding: 1rem;
+background-color: #f8f9fa;
+border-radius: 8px;
+}

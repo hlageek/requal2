@@ -100,38 +100,10 @@ cookieconsent.run({
 <link href="../site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="../styles.css">
 <link rel="stylesheet" href="../requalverse/requalverse_styles.css">
+<link rel="stylesheet" href="../requalverse/requalverse-category-filters.css">
 </head>
 
 <body class="nav-fixed quarto-light">
@@ -241,56 +213,79 @@ window.Quarto = {
 </header>
 
 
-<p>[1] “rql.textimport” “rql.wordcloud” “requal”<br>
-Called from: extract_package_data(marketplace_packages[i, ]) debug: is_missing &lt;- function(x) { is.null(x) || (length(x) == 1 &amp;&amp; is.na(x)) } debug: test &lt;- list(name = pkg<span class="math inline">\(Package, url = if (!is_missing(pkg\)</span>URL)) pkg<span class="math inline">\(URL else if (!is_missing(pkg\)</span>RemoteUrl)) pkg<span class="math inline">\(RemoteUrl else NULL,
-    description = if (!is_missing(pkg\)</span>Description)) pkg<span class="math inline">\(Description else NULL,
-    categories = if (!is_missing(pkg\)</span>metadata<span class="math inline">\(requalverse\)</span>category)) unlist(pkg<span class="math inline">\(metadata\)</span>requalverse<span class="math inline">\(category) else NULL,
-    origin = if (!is_missing(pkg\)</span>metadata<span class="math inline">\(requalverse\)</span>package_origin)) pkg<span class="math inline">\(metadata\)</span>requalverse<span class="math inline">\(package_origin else "community",
-    logo_url = if (!is_missing(pkg\)</span>metadata<span class="math inline">\(requalverse\)</span>logo)) pkg<span class="math inline">\(metadata\)</span>requalverse<span class="math inline">\(logo else NULL)
-debug: if (!is_missing(pkg\)</span>RemoteUrl)) pkg<span class="math inline">\(RemoteUrl else NULL
-debug: NULL
-debug: NULL
-debug: NULL
-debug: [1] "community"
-debug: NULL
-debug: print(test)\)</span>name [1] NA</p>
-<p>$url NULL</p>
-<p>$description NULL</p>
-<p>$categories NULL</p>
-<p>$origin [1] “community”</p>
-<p>$logo_url NULL</p>
-<p>debug: test Called from: extract_package_data(marketplace_packages[i, ]) debug: is_missing &lt;- function(x) { is.null(x) || (length(x) == 1 &amp;&amp; is.na(x)) } debug: test &lt;- list(name = pkg<span class="math inline">\(Package, url = if (!is_missing(pkg\)</span>URL)) pkg<span class="math inline">\(URL else if (!is_missing(pkg\)</span>RemoteUrl)) pkg<span class="math inline">\(RemoteUrl else NULL,
-    description = if (!is_missing(pkg\)</span>Description)) pkg<span class="math inline">\(Description else NULL,
-    categories = if (!is_missing(pkg\)</span>metadata<span class="math inline">\(requalverse\)</span>category)) unlist(pkg<span class="math inline">\(metadata\)</span>requalverse<span class="math inline">\(category) else NULL,
-    origin = if (!is_missing(pkg\)</span>metadata<span class="math inline">\(requalverse\)</span>package_origin)) pkg<span class="math inline">\(metadata\)</span>requalverse<span class="math inline">\(package_origin else "community",
-    logo_url = if (!is_missing(pkg\)</span>metadata<span class="math inline">\(requalverse\)</span>logo)) pkg<span class="math inline">\(metadata\)</span>requalverse<span class="math inline">\(logo else NULL)
-debug: pkg\)</span>URL debug: pkg<span class="math inline">\(Description
-debug: NULL
-debug: [1] "community"
-debug: NULL
-debug: print(test)\)</span>name character(0)</p>
-<p>$url character(0)</p>
-<p>$description character(0)</p>
-<p>$categories NULL</p>
-<p>$origin [1] “community”</p>
-<p>$logo_url NULL</p>
-<p>debug: test $name [1] NA</p>
-<p>$url NULL</p>
-<p>$description NULL</p>
-<p>$categories NULL</p>
-<p>$origin [1] “community”</p>
-<p>$logo_url NULL</p>
-<p>$name character(0)</p>
-<p>$url character(0)</p>
-<p>$description character(0)</p>
-<p>$categories NULL</p>
-<p>$origin [1] “community”</p>
-<p>$logo_url NULL</p>
-outside<div class="container-fluid"><h2 class="mb-4 anchored">Available Packages</h2><div class="packages-container"><div class="card mb-3 requalverse-card package-card" data-category=""><div class="card-body"><div class="requalverse-header"><div class="requalverse-logo-container"><div class="requalverse-icon-placeholder">
+<div class="container-fluid">
+<h2 class="mb-4 anchored">Available Packages</h2>
+<button class="filter-toggle" onclick="document.querySelector('.filters-only').classList.toggle('show')">Show/Hide Filters</button>
+<div class="filters-only">
+<h4 class="mb-3 anchored">Filter by Category:</h4>
+</div>
+<input type="radio" id="filter-all" name="category-filter" class="filter-radio" checked="" style="display: none;">
+<label for="filter-all" class="filter-label filters-only-content">All</label>
+<input type="radio" id="filter-import" name="category-filter" class="filter-radio" style="display: none;">
+<label for="filter-import" class="filter-label filters-only-content">import</label>
+<input type="radio" id="filter-convert" name="category-filter" class="filter-radio" style="display: none;">
+<label for="filter-convert" class="filter-label filters-only-content">convert</label>
+<input type="radio" id="filter-documents" name="category-filter" class="filter-radio" style="display: none;">
+<label for="filter-documents" class="filter-label filters-only-content">documents</label>
+<input type="radio" id="filter-transcriptions" name="category-filter" class="filter-radio" style="display: none;">
+<label for="filter-transcriptions" class="filter-label filters-only-content">transcriptions</label>
+<input type="radio" id="filter-visualization" name="category-filter" class="filter-radio" style="display: none;">
+<label for="filter-visualization" class="filter-label filters-only-content">visualization</label>
+<input type="radio" id="filter-text-analysis" name="category-filter" class="filter-radio" style="display: none;">
+<label for="filter-text-analysis" class="filter-label filters-only-content">text analysis</label>
+<div class="packages-container">
+<div class="card mb-3 requalverse-card package-card" data-category="import, convert, documents, transcriptions">
+<div class="card-body">
+<div class="requalverse-header">
+<div class="requalverse-logo-container">
+<div class="requalverse-icon-placeholder">
 <i class="fas fa-puzzle-piece" role="presentation" aria-label="puzzle-piece icon" style="font-size: 20px;"></i>
-</div></div><div class="requalverse-title-badge-container"><h4 class="card-title mb-0 anchored"><a target="_blank" style="text-decoration: none; color: inherit;">NA</a></h4><span class="requalverse-badge requalverse-badge-community">COMMUNITY</span></div></div></div></div><div class="card mb-3 requalverse-card package-card" data-category=""><div class="card-body"><div class="requalverse-header"><div class="requalverse-logo-container"><div class="requalverse-icon-placeholder">
+</div>
+</div>
+<div class="requalverse-title-badge-container">
+<h4 class="card-title mb-0 anchored">
+<a href="" target="_blank" style="text-decoration: none; color: inherit;">rql.textimport</a>
+</h4>
+<span class="requalverse-badge requalverse-badge-requal">REQUAL</span>
+</div>
+</div>
+<p class="card-text text-muted mb-2">What the package does (one paragraph).</p>
+<p class="card-text mb-0">
+<strong>Categories: </strong>
+<span class="text-muted">import, convert, documents, transcriptions</span>
+</p>
+</div>
+</div>
+<div class="card mb-3 requalverse-card package-card" data-category="visualization, text analysis">
+<div class="card-body">
+<div class="requalverse-header">
+<div class="requalverse-logo-container">
+<div class="requalverse-icon-placeholder">
 <i class="fas fa-puzzle-piece" role="presentation" aria-label="puzzle-piece icon" style="font-size: 20px;"></i>
-</div></div><div class="requalverse-title-badge-container"><h4 class="card-title mb-0 anchored"><a target="_blank" style="text-decoration: none; color: inherit;"></a></h4><span class="requalverse-badge requalverse-badge-community">COMMUNITY</span></div></div><p class="card-text text-muted mb-2"></p></div></div></div></div>
+</div>
+</div>
+<div class="requalverse-title-badge-container">
+<h4 class="card-title mb-0 anchored">
+<a href="" target="_blank" style="text-decoration: none; color: inherit;">rql.wordcloud</a>
+</h4>
+<span class="requalverse-badge requalverse-badge-requal">REQUAL</span>
+</div>
+</div>
+<p class="card-text text-muted mb-2">Creates interactive word frequency visualizations from
+coded text segments in requal. Supports multiple code selection
+for comparative analysis, with customizable text processing
+options including stop word removal and punctuation handling.
+Features real-time filtering by minimum word frequency and
+provides live feedback on word counts. Built with wordcloud2
+for responsive, interactive wordcloud displays.</p>
+<p class="card-text mb-0">
+<strong>Categories: </strong>
+<span class="text-muted">visualization, text analysis</span>
+</p>
+</div>
+</div>
+</div>
+</div>
 
 
 

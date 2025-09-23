@@ -1,0 +1,55 @@
+/* Generated CSS selectors for requalverse categories */
+
+/* Filter toggle functionality */
+.filter-toggle {
+  display: inline-block;
+  padding: 8px 16px;
+  margin-bottom: 1rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s;
+}
+
+.filter-toggle:hover {
+  background-color: #5a6268;
+}
+
+.filters-only {
+  display: none;
+  margin-bottom: 1rem;
+}
+
+.filters-only.show {
+  display: block;
+}
+
+.filters-only-content {
+  display: none;
+}
+
+.filters-only.show ~ .filters-only-content {
+  display: inline-block;
+}
+
+#filter-import:checked ~ .packages-container .package-card[data-category*="import"] {
+  display: block;
+}
+#filter-convert:checked ~ .packages-container .package-card[data-category*="convert"] {
+  display: block;
+}
+#filter-documents:checked ~ .packages-container .package-card[data-category*="documents"] {
+  display: block;
+}
+#filter-transcriptions:checked ~ .packages-container .package-card[data-category*="transcriptions"] {
+  display: block;
+}
+#filter-visualization:checked ~ .packages-container .package-card[data-category*="visualization"] {
+  display: block;
+}
+#filter-text-analysis:checked ~ .packages-container .package-card[data-category*="text analysis"] {
+  display: block;
+}

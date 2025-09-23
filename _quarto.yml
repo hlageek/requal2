@@ -47,6 +47,7 @@ format:
     css:    
     - styles.css
     - requalverse/requalverse_styles.css
+    - requalverse/requalverse-category-filters.css
     toc: true
 
 

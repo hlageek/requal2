@@ -1,7 +1,7 @@
 ---
 title: "Requalverse Marketplace"
 categories:
-- requalverse
+  - requalverse
 ---
 
 ```{r}
@@ -10,51 +10,61 @@ categories:
 #| message: false
 #| results: asis
 
+library(htmltools)
 library(jsonlite)
 library(purrr)
 library(shiny)
 
-# Fetch the packages data
-packages <- fromJSON("https://hlageek.r-universe.dev/api/packages/", flatten = FALSE)
-packages$Package
+# Load packages from R-universe API and transpose for easier access
+packages_raw <- fromJSON("https://hlageek.r-universe.dev/api/packages/", flatten = TRUE)
+packages <- transpose(packages_raw)
+
 # Filter packages that have marketplace = true
 marketplace_packages <- packages[
-  !is.na(packages$`_metadata`$requalverse$marketplace) & 
-  packages$`_metadata`$requalverse$marketplace == TRUE, 
+  map_lgl(packages, ~ !is.na(.x$`_metadata.requalverse.marketplace`) && .x$`_metadata.requalverse.marketplace` == TRUE)
 ]
 
-marketplace_packages$`_metadata`$requalverse$category
 # Function to extract package data safely
 extract_package_data <- function(pkg) {
-    browser()
-
+  
   # Safe check function
   is_missing <- function(x) {
     is.null(x) || (length(x) == 1 && is.na(x))
   }
-  test <- list(
+  
+  list(
     name = pkg$Package,
-    url = if (!is_missing(pkg$URL)) pkg$URL else if (!is_missing(pkg$RemoteUrl)) pkg$RemoteUrl else NULL,
-    description = if(!is_missing(pkg$Description)) pkg$Description else NULL,
-    categories = if(!is_missing(pkg$`_metadata`$requalverse$category)) unlist(pkg$`_metadata`$requalverse$category) else NULL,
-    origin = if(!is_missing(pkg$`_metadata`$requalverse$package_origin)) pkg$`_metadata`$requalverse$package_origin else "community",
-    logo_url = if(!is_missing(pkg$`_metadata`$requalverse$logo)) pkg$`_metadata`$requalverse$logo else NULL
+    url = pkg$URL %||% pkg$RemoteUrl %||% "#",
+    description = if(is_missing(pkg$Description)) NULL else pkg$Description,
+    categories = if(is_missing(pkg$`_metadata.requalverse.category`)) {
+      NULL
+    } else {
+      paste(pkg$`_metadata.requalverse.category`, collapse = ", ")
+    },
+    origin = if(is_missing(pkg$`_metadata.requalverse.package_origin`)) {
+      "requal"
+    } else {
+      as.character(pkg$`_metadata.requalverse.package_origin`)
+    },
+    logo_url = if(is_missing(pkg$`_metadata.requalverse.logo`)) {
+      NULL
+    } else {
+      pkg$`_metadata.requalverse.logo`
+    }
   )
-  print(test)
-  test
 }
 
 # Function to create HTML card from extracted data
 create_card_html <- function(data) {
-    print(data)
+  
   # Create logo element
   logo_element <- if(is.null(data$logo_url)) {
-    div(.noWS="outside",
+    div(
       class = "requalverse-icon-placeholder",
       icon("puzzle-piece", style = "font-size: 20px;")
     )
   } else {
-    img(.noWS="outside",
+    img(
       src = data$logo_url, 
       class = "requalverse-logo",
       alt = paste(data$name, "logo")
@@ -71,55 +81,56 @@ create_card_html <- function(data) {
   
   # Create data-category attribute for filtering
   data_category <- if(!is.null(data$categories)) {
-    # Convert categories to lowercase and replace spaces with hyphens for CSS compatibility
-   paste(tolower(gsub("\\s+", "-", data$categories)), collapse = " " )
+    # Split by comma, trim whitespace, convert to lowercase, join with commas
+    categories_clean <- trimws(strsplit(data$categories, ",")[[1]])
+    tolower(paste(categories_clean, collapse = ", "))
   } else {
     ""
   }
   
   # Create card
-  div(.noWS="outside",
+  div(
     class = "card mb-3 requalverse-card package-card",
     `data-category` = data_category,
-    div(.noWS="outside",
+    div(
       class = "card-body",
       
       # Header
-      div(.noWS="outside",
+      div(
         class = "requalverse-header",
         
         # Logo
-        div(.noWS="outside", class = "requalverse-logo-container", logo_element),
+        div(class = "requalverse-logo-container", logo_element),
         
         # Title and badge
-        div(.noWS="outside",
+        div(
           class = "requalverse-title-badge-container",
-          h4(.noWS="outside",
+          h4(
             class = "card-title mb-0",
-            a(.noWS="outside",
+            a(
               href = data$url,
               target = "_blank",
               style = "text-decoration: none; color: inherit;",
               data$name
             )
           ),
-          span(.noWS="outside", class = badge_class, toupper(data$origin))
+          span(class = badge_class, toupper(data$origin))
         )
       ),
       
       # Description
       if(!is.null(data$description)) {
-        p(.noWS="outside", class = "card-text text-muted mb-2", data$description)
+        p(class = "card-text text-muted mb-2", data$description)
       },
       
       # Categories
-if (!is.null(data$categories)) {
-  p(.noWS="outside",
-    class = "card-text mb-0",
-    strong("Categories: "),
-    do.call(tagList, map(data$categories, ~ span(.noWS="outside", class = "text-muted", .x)))
-  )
-}
+      if(!is.null(data$categories)) {
+        p(
+          class = "card-text mb-0",
+          strong("Categories: "),
+          span(class = "text-muted", data$categories)
+        )
+      }
     )
   )
 }
@@ -128,10 +139,8 @@ if (!is.null(data$categories)) {
 create_category_filters <- function(package_data_list) {
   # Extract unique categories
   all_categories <- unique(unlist(map(package_data_list, function(x) {
-    if(!is.null(x$categories) && is.character(x$categories)) {
-      trimws(strsplit(x$categories, ","))
-    } else {
-      NULL
+    if(!is.null(x$categories)) {
+      trimws(strsplit(x$categories, ",")[[1]])
     }
   })))
   
@@ -143,9 +152,9 @@ create_category_filters <- function(package_data_list) {
   }
   
   # Create filter HTML
-  div(.noWS="outside",
+  div(
     class = "filter-container",
-    h4(.noWS="outside","Filter by Category:", class = "mb-3"),
+    h4("Filter by Category:", class = "mb-3"),
     
     # All filter (checked by default)
     tags$input(type = "radio", id = "filter-all", name = "category-filter", class = "filter-radio", checked = NA),
@@ -162,10 +171,73 @@ create_category_filters <- function(package_data_list) {
   )
 }
 
+# Function to generate and write CSS selectors for categories
+generate_css_selectors <- function(package_data_list) {
+  # Extract unique categories
+  all_categories <- unique(unlist(map(package_data_list, function(x) {
+    if(!is.null(x$categories)) {
+      trimws(strsplit(x$categories, ",")[[1]])
+    }
+  })))
+  
+  # Remove any empty strings
+  all_categories <- all_categories[nzchar(all_categories)]
+  
+  # Generate CSS content including toggle functionality
+  css_content <- c(
+    "/* Generated CSS selectors for requalverse categories */",
+    "",
+    "/* Filter toggle functionality */",
+    ".filter-toggle {",
+    "  display: inline-block;",
+    "  padding: 8px 16px;",
+    "  margin-bottom: 1rem;",
+    "  background-color: #6c757d;",
+    "  color: white;",
+    "  border: none;",
+    "  border-radius: 6px;",
+    "  cursor: pointer;",
+    "  font-size: 0.9em;",
+    "  transition: background-color 0.2s;",
+    "}",
+    "",
+    ".filter-toggle:hover {",
+    "  background-color: #5a6268;",
+    "}",
+    "",
+    ".filters-only {",
+    "  display: none;",
+    "  margin-bottom: 1rem;",
+    "}",
+    "",
+    ".filters-only.show {",
+    "  display: block;",
+    "}",
+    "",
+    ".filters-only-content {",
+    "  display: none;",
+    "}",
+    "",
+    ".filters-only.show ~ .filters-only-content {",
+    "  display: inline-block;",
+    "}",
+    "",
+    map_chr(all_categories, function(cat) {
+      cat_id <- paste0("filter-", tolower(gsub("[^a-z]", "-", cat)))
+      cat_selector <- cat  # Keep original category name for data-category matching
+      sprintf("#%s:checked ~ .packages-container .package-card[data-category*=\"%s\"] {\n  display: block;\n}", cat_id, cat_selector)
+    })
+  )
+  
+  # Write to file
+  writeLines(css_content, "requalverse-category-filters.css")
+}
+
 # Extract data for all marketplace packages
-package_data_list <- map(1:nrow(marketplace_packages), function(i) {
-  extract_package_data(marketplace_packages[i, ])
-})
+package_data_list <- map(marketplace_packages, extract_package_data)
+
+# Generate CSS selectors for easy copy-paste and write to file
+generate_css_selectors(package_data_list)
 
 # Create category filters
 category_filters <- create_category_filters(package_data_list)
@@ -174,21 +246,49 @@ category_filters <- create_category_filters(package_data_list)
 package_cards <- map(package_data_list, create_card_html)
 
 # Create the final listing
-tagList(.noWS="outside",
-div(.noWS="outside",
+div(
   class = "container-fluid",
-  h2(.noWS="outside", "Available Packages", class = "mb-4"),
+  h2("Available Packages", class = "mb-4"),
   
-  # Category filters
-  if (!is.null(category_filters)) {
-    category_filters
+  # Toggle button for filters
+  tags$button(
+    class = "filter-toggle",
+    onclick = "document.querySelector('.filters-only').classList.toggle('show')",
+    "Show/Hide Filters"
+  ),
+  
+  # Just the filter controls (hidden by default) 
+  div(
+    class = "filters-only",
+    h4("Filter by Category:", class = "mb-3")
+  ),
+  
+  # Radio buttons as direct children (for CSS sibling selector to work)
+  if(!is.null(category_filters)) {
+    tagList(
+      # All filter (checked by default)
+      tags$input(type = "radio", id = "filter-all", name = "category-filter", class = "filter-radio", checked = NA, style = "display: none;"),
+      tags$label(`for` = "filter-all", class = "filter-label filters-only-content", "All"),
+      
+      # Individual category filters  
+      map(unique(unlist(map(package_data_list, function(x) {
+        if(!is.null(x$categories)) {
+          trimws(strsplit(x$categories, ",")[[1]])
+        }
+      }))), function(cat) {
+        cat_id <- paste0("filter-", tolower(gsub("[^a-z]", "-", cat)))
+        tagList(
+          tags$input(type = "radio", id = cat_id, name = "category-filter", class = "filter-radio", style = "display: none;"),
+          tags$label(`for` = cat_id, class = "filter-label filters-only-content", cat)
+        )
+      })
+    )
   },
   
-  # Packages container for CSS filtering
+  # Packages container (always visible, now sibling to radio buttons)
   div(
     class = "packages-container",
-    do.call(tagList, package_cards),
-    .noWS = "outside" # Use tagList to prevent whitespace issues
+    package_cards
   )
-))
+)
 ```
