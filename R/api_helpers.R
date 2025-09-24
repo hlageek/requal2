@@ -204,6 +204,8 @@ modify_codebook_query <- function(query, private) {
 
 # Get_* methods filters ----------------------------
 
+# lets scope the arguments in impl from the wrapper env, so date_range = date_range
+# pagination should be opt-in, so NULL on default
 # get_segments = function(date_range = NULL, user_ids = NULL, keyword = NULL,
 #                         page = 1, page_size = 100, sort_by = NULL, descending = FALSE) {
 #   query <- get_table_query(private, "segments")
