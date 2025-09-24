@@ -25,6 +25,15 @@ All methods follow a consistent pattern:
 \item Return \code{FALSE} on errors with warnings (\verb{write_*}, \verb{edit_*}, \verb{delete_*} methods)
 }
 }
+\section{Active Bindings for Database}{
+
+Active bindings for the database dynamically retrieve the entire content
+of the tables in the project database, taking user permissions into account.
+These bindings represent the most stable part of the RequalAPI.
+For customization, filtering options, and improved performance control,
+consider using the \verb{get_*} methods instead.
+}
+
 \examples{
 
 ## ------------------------------------------------
@@ -51,20 +60,6 @@ Get documents for the current user and project
 api <- requal::RequalAPI$new()
 documents <- api$get_documents()  # Gets mock documents
 head(documents)
-
-## ------------------------------------------------
-## Method `RequalAPI$write_documents`
-## ------------------------------------------------
-
-\dontrun{
-documents_df <- data.frame(
-  doc_name = c("doc1", "doc2"),
-  doc_text = c("Text for doc1", "Text for doc2"),
-  doc_description = c("Description for doc1", "Description for doc2")
-)
-api <- RequalAPI$new()
-result <- api$write_documents(documents_df)
-}
 }
 \seealso{
 For examples, see the documentation for the \code{RequalAPI$new()} method.
@@ -216,22 +211,6 @@ Add a new document to the current project
 \subsection{Returns}{
 Result of the write operation (logical)
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-documents_df <- data.frame(
-  doc_name = c("doc1", "doc2"),
-  doc_text = c("Text for doc1", "Text for doc2"),
-  doc_description = c("Description for doc1", "Description for doc2")
-)
-api <- RequalAPI$new()
-result <- api$write_documents(documents_df)
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RequalAPI-clone"></a>}}

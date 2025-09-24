@@ -201,3 +201,63 @@ modify_codebook_query <- function(query, private) {
   }
   return(query)
 }
+
+# Get_* methods filters ----------------------------
+
+# get_segments = function(date_range = NULL, user_ids = NULL, keyword = NULL,
+#                         page = 1, page_size = 100, sort_by = NULL, descending = FALSE) {
+#   query <- get_table_query(private, "segments")
+
+#   # Apply filters using helper functions
+#   query <- apply_date_range_filter(query, "segment_date", date_range)
+#   query <- apply_user_id_filter(query, "user_id", user_ids)
+#   query <- apply_keyword_filter(query, "segment_text", keyword)
+#   query <- apply_sorting(query, sort_by, descending)
+#   query <- apply_pagination(query, page, page_size)
+
+#   return(dplyr::collect(query))
+# }
+
+#' Filter for date range
+apply_date_range_filter <- function(query, date_column, date_range) {
+  if (!is.null(date_range)) {
+    query <- query %>%
+      dplyr::filter(
+        !!sym(date_column) >= !!date_range[1] &
+          !!sym(date_column) <= !!date_range[2]
+      )
+  }
+  return(query)
+}
+
+apply_user_id_filter <- function(query, user_id_column, user_ids) {
+  if (!is.null(user_ids)) {
+    query <- query %>%
+      dplyr::filter(!!sym(user_id_column) %in% !!user_ids)
+  }
+  return(query)
+}
+
+apply_keyword_filter <- function(query, text_column, keyword) {
+  if (!is.null(keyword)) {
+    query <- query %>%
+      dplyr::filter(grepl(!!keyword, !!sym(text_column), ignore.case = TRUE))
+  }
+  return(query)
+}
+
+apply_sorting <- function(query, sort_by, descending) {
+  if (!is.null(sort_by)) {
+    query <- query %>%
+      dplyr::arrange(
+        if (descending) dplyr::desc(!!sym(sort_by)) else !!sym(sort_by)
+      )
+  }
+  return(query)
+}
+
+apply_pagination <- function(query, page, page_size) {
+  query <- query %>%
+    dplyr::slice((page - 1) * page_size + 1:page_size)
+  return(query)
+}
