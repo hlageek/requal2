@@ -177,10 +177,18 @@ RequalAPI <- R6::R6Class(
 
     #' @field segments Coded segments database binding.
     #'
-    #' A lazy `tbl_sql`-class query object representing coded segments
+    #' A lazy `tbl_sql`-class query object representing the coded segments
     #' in compliance with the user's permissions for the current project.
     segments = function() {
       build_segments_query(private)
+    },
+
+    #' @field codebook Codebook database binding.
+    #'
+    #' A lazy `tbl_sql`-class query object representing the codebook
+    #' in compliance with the user's permissions for the current project.
+    segments = function() {
+      build_codebook_query(private)
     }
   )
 )

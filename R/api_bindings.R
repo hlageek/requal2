@@ -34,3 +34,38 @@ build_segments_query <- function(private) {
   }
   return(segments_query)
 }
+
+#' Construct a codebook query object
+#'
+#' @description Internal helper function to construct a database query for
+#' retrieving a codebook.
+#'
+#' @param private A list-like object containing private fields, including
+#'   `.con` (database connection), `.project_id`, `.user_id`, and
+#'   a method for checking permissions.
+#'
+#' @return A `dplyr` query object representing the codebook table, filtered
+#'   according to the project ID and user permissions.
+#'
+#' @keywords internal
+build_codebook_query <- function(private) {
+  if (is.null(private$.con)) {
+    stop("Database connection is not set.")
+  }
+  # Start building the codebook query
+  codebook_query <- dplyr::tbl(private$.con, "codes") %>%
+    dplyr::filter(project_id == !!private$.project_id) %>%
+    dplyr::select(
+      code_id,
+      code_name,
+      code_description,
+      user_id
+    )
+
+  if (!can_view_others_codes) {
+    codebook_query <- codebook_query %>%
+      dplyr::filter(user_id == !!private$.user_id)
+  }
+
+  return(codebook_query)
+}
