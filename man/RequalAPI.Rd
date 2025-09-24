@@ -83,10 +83,20 @@ For examples, see the documentation for the \code{RequalAPI$new()} method.
 
 \item{\code{project_id}}{Integer. The current project's ID (read-only)}
 
-\item{\code{segments}}{Coded segments query object.
+\item{\code{documents}}{Documents database binding.
 
-A \code{tbl_sql}-class query object representing coded segments
-in compliance with the user's permissions for current project.}
+A dataframe with data related to documents
+in compliance with the user's permissions for the current project.}
+
+\item{\code{segments}}{Coded segments database binding.
+
+A dataframe with data related to coded segments
+in compliance with the user's permissions for the current project.}
+
+\item{\code{codebook}}{Codebook database binding.
+
+A dataframe with data related to codebook
+in compliance with the user's permissions for the current project.}
 }
 \if{html}{\out{</div>}}
 }

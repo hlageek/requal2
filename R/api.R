@@ -24,6 +24,13 @@
 #'
 #' @field version Character. The API version
 #'
+#' @section Active Bindings for Database:
+#' Active bindings for the database dynamically retrieve the entire content
+#' of the tables in the project database, taking user permissions into account.
+#' These bindings represent the most stable part of the RequalAPI.
+#' For customization, filtering options, and improved performance control,
+#' consider using the `get_*` methods instead.
+#'
 #' @seealso
 #' For examples, see the documentation for the `RequalAPI$new()` method.
 #'
@@ -58,7 +65,7 @@ RequalAPI <- R6::R6Class(
   ),
 
   public = list(
-    version = "0.1.3",
+    version = "0.1.4",
 
     #' @description
     #' Initialize a new RequalAPI instance
@@ -108,7 +115,7 @@ RequalAPI <- R6::R6Class(
     #' segments <- api$get_segments()  # Gets mock segments
     #' head(segments)
     get_segments = function() {
-      get_segments_impl(private)
+      get_segments_impl(private, self)
     },
 
     #' Get documents for the current user and project
@@ -126,7 +133,7 @@ RequalAPI <- R6::R6Class(
     #' documents <- api$get_documents()  # Gets mock documents
     #' head(documents)
     get_documents = function() {
-      get_documents_impl(private)
+      get_documents_impl(private, self)
     },
 
     #' @description
@@ -144,8 +151,8 @@ RequalAPI <- R6::R6Class(
     #'   doc_description = c("Description for doc1", "Description for doc2")
     #')
     #' api <- RequalAPI$new()
-    #' result <- api$write_documents(documents_df)
-    #' }
+    #' api$write_documents(documents_df)
+    #' api$documents # Check result
     write_documents = function(.data) {
       write_documents_impl(.data, private)
     }
@@ -175,20 +182,28 @@ RequalAPI <- R6::R6Class(
 
     # Database bindings --------------------------------------
 
+    #' @field documents Documents database binding.
+    #'
+    #' A dataframe with data related to documents
+    #' in compliance with the user's permissions for the current project.
+    documents = function() {
+      get_table_query(private, "documents", collect = TRUE)
+    },
+
     #' @field segments Coded segments database binding.
     #'
-    #' A lazy `tbl_sql`-class query object representing the coded segments
+    #' A dataframe with data related to coded segments
     #' in compliance with the user's permissions for the current project.
     segments = function() {
-      build_segments_query(private)
+      get_table_query(private, "segments", collect = TRUE)
     },
 
     #' @field codebook Codebook database binding.
     #'
-    #' A lazy `tbl_sql`-class query object representing the codebook
+    #' A dataframe with data related to codebook
     #' in compliance with the user's permissions for the current project.
-    segments = function() {
-      build_codebook_query(private)
+    codebook = function() {
+      get_table_query(private, "codes", collect = TRUE)
     }
   )
 )

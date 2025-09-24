@@ -2,6 +2,8 @@
 # REQUAL API HELPER FUNCTIONS
 # =============================================================================
 
+# Connect to mock database ----------------------------
+
 #' Get connection to mock database
 #'
 #' @description Internal helper to connect to the bundled mock database for testing
@@ -23,6 +25,7 @@
   return(con)
 }
 
+# Permission checks ----------------------------
 
 #' Check user permissions for database operations
 #'
@@ -86,4 +89,115 @@
     warning("Unknown permission argument; returning FALSE.")
     return(FALSE) # Unknown permission
   }
+}
+
+# Query the database tables ----------------------------
+
+#' Construct a generic table query object
+#'
+#' @description Internal helper function to construct a database query for
+#' retrieving data from a specified table.
+#'
+#' @param private A list-like object containing private fields, including
+#'   `.con` (database connection), `.project_id`, `.user_id`, and
+#'   a method for checking permissions.
+#' @param table A character string specifying the table name to query.
+#'
+#' @return A `dplyr` query object representing the specified table, filtered
+#'   according to the project ID and user permissions.
+#'
+#' @keywords internal
+get_table_query <- function(private, table = NULL, collect = FALSE) {
+  if (is.null(private$.con)) {
+    stop("Database connection is not set.")
+  }
+  if (is.null(table)) {
+    stop("Table name must be provided.")
+  }
+
+  # Build the base query
+  query <- dplyr::tbl(private$.con, table) %>%
+    dplyr::filter(project_id == !!private$.project_id)
+
+  # Apply table-specific modifications
+  query <- modify_query(query, table, can_view_others, private)
+
+  if (collect) {
+    query <- dplyr::collect(query)
+  }
+
+  return(query)
+}
+
+# To add new tables
+# 1. create new modification function
+# 2. add them to the switch statement in modify_query.
+
+#' Modify query based on table-specific logic
+#'
+#' @param query The base dplyr query object.
+#' @param table The table name.
+#' @param can_view_others Boolean indicating if the user can view others' data.
+#' @param private The private list-like object containing user and project info.
+#'
+#' @return A modified dplyr query object.
+#' @keywords internal
+modify_query <- function(query, table, can_view_others, private) {
+  modified_query <- switch(
+    table,
+    "documents" = modify_documents_query(query, private),
+    "segments" = modify_segments_query(query, private),
+    "codes" = modify_codebook_query(query, private),
+    stop("Unknown table name.")
+  )
+  return(modified_query)
+}
+
+#' Modify documents query
+modify_documents_query <- function(query, private) {
+  query <- query %>%
+    dplyr::select(
+      doc_id,
+      user_id,
+      doc_name,
+      doc_description,
+      doc_text,
+      created_at
+    )
+  if (!private$.check_permissions("data_other_view")) {
+    query <- query %>%
+      dplyr::filter(user_id == !!private$.user_id)
+  }
+  return(query)
+}
+
+#' Modify segments query
+modify_segments_query <- function(query, private) {
+  query <- query %>%
+    dplyr::filter(!is.na(code_id)) %>% # Exclude memo segments
+    dplyr::select(
+      segment_id,
+      user_id,
+      doc_id,
+      segment_start,
+      segment_end,
+      segment_text,
+      code_id
+    )
+  if (!private$.check_permissions("annotation_other_view")) {
+    query <- query %>%
+      dplyr::filter(user_id == !!private$.user_id)
+  }
+  return(query)
+}
+
+#' Modify codebook query
+modify_codebook_query <- function(query, private) {
+  query <- query %>%
+    dplyr::select(code_id, code_name, code_description, user_id)
+  if (!private$.check_permissions("codebook_other_view")) {
+    query <- query %>%
+      dplyr::filter(user_id == !!private$.user_id)
+  }
+  return(query)
 }

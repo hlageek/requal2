@@ -4,7 +4,7 @@
 \alias{get_documents_impl}
 \title{Get documents from the database}
 \usage{
-get_documents_impl(private)
+get_documents_impl(private, self)
 }
 \arguments{
 \item{private}{A list-like object containing private fields, including

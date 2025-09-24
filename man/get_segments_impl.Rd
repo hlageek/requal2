@@ -4,7 +4,7 @@
 \alias{get_segments_impl}
 \title{Get segments from the database}
 \usage{
-get_segments_impl(private)
+get_segments_impl(private, self)
 }
 \arguments{
 \item{private}{A list-like object containing private fields, including

@@ -13,29 +13,17 @@
 #'   `segment_end`, `segment_text`, `code_id`, `code_name`,
 #'   `code_description`, and `code_created_by`. Returns `NULL` if the query fails.
 #' @keywords internal
-get_segments_impl <- function(private) {
+get_segments_impl <- function(private, self) {
   tryCatch(
     {
-      # Start building the codes query
-      codes_query <- dplyr::tbl(private$.con, "codes") %>%
-        dplyr::filter(project_id == !!private$.project_id) %>%
-        dplyr::select(
-          code_id,
-          code_name,
-          code_description,
-          code_created_by = user_id
-        )
-
-      if (!can_view_others_codes) {
-        codes_query <- codes_query %>%
-          dplyr::filter(created_by == !!private$.user_id)
-      }
-
       # Perform the join operation in the database
-      data <- self$segments %>%
-        dplyr::inner_join(codes_query, by = "code_id") %>%
+      data <- dplyr::inner_join(
+        self$segments,
+        self$codebook %>%
+          dplyr::rename(code_user_id = user_id),
+        by = "code_id"
+      ) %>%
         dplyr::select(
-          project_id,
           user_id,
           doc_id,
           segment_id,
@@ -45,7 +33,7 @@ get_segments_impl <- function(private) {
           code_id,
           code_name,
           code_description,
-          code_created_by
+          code_user_id
         ) %>%
         dplyr::collect()
 
@@ -71,35 +59,13 @@ get_segments_impl <- function(private) {
 #'   `doc_id`, `project_id`, `user_id`, `doc_name`, `doc_description`,
 #'   `doc_text`, and `created_at`. Returns `NULL` if the query fails.
 #' @keywords internal
-get_documents_impl <- function(private) {
+get_documents_impl <- function(private, self) {
   tryCatch(
     {
-      can_view_others <- private$.check_permissions("data_other_view")
-
       if (is.null(private$.con)) {
         stop("Database connection is not set.")
       }
-
-      # Build the query
-      documents_query <- dplyr::tbl(private$.con, "documents") %>%
-        dplyr::filter(project_id == !!private$.project_id) %>%
-        dplyr::select(
-          doc_id,
-          project_id,
-          user_id,
-          doc_name,
-          doc_description,
-          doc_text,
-          created_at
-        )
-
-      if (!can_view_others) {
-        documents_query <- documents_query %>%
-          dplyr::filter(user_id == !!private$.user_id)
-      }
-
-      data <- documents_query %>%
-        dplyr::collect()
+      data <- self$documents
 
       return(data)
     },
