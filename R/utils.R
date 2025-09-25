@@ -512,3 +512,25 @@ entitle_memo <- function(memo_text) {
 button_is_on <- function(button_input) {
   return(button_input %% 2 == 1)
 }
+
+# Value button
+valueButton <- function(
+  inputId,
+  value,
+  label,
+  icon = NULL,
+  width = NULL,
+  disabled = FALSE,
+  ...
+) {
+  actionButton(
+    inputId = inputId,
+    label = label,
+    icon = icon,
+    class = c("value-button", class),
+    `data-value` = value,
+    width = width,
+    disabled = disabled,
+    ...
+  )
+}
