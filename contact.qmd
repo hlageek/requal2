@@ -4,7 +4,7 @@ title: "Contact"
 
 ## Meet the team
 
-Requal is developed through the collaboration of sociologists from the [Institute of Philosophy of the Czech Academy of Sciences](https://www.flu.cas.cz/en/), the [Institute of Sociology of the Czech Academy of Sciences](https://www.soc.cas.cz/en/), and the [Faculty of Social Sciences of Charles University](https://iss.fsv.cuni.cz/en):
+Requal is developed by Radim Hladík in collaboration with Michael Škvrňák, Martin Hájek, and other contributors. The development stems from the partnership of sociologists from the [Institute of Philosophy of the Czech Academy of Sciences](https://www.flu.cas.cz/en/), the [Institute of Sociology of the Czech Academy of Sciences](https://www.soc.cas.cz/en/), and the [Faculty of Social Sciences of Charles University](https://iss.fsv.cuni.cz/en):
 
 - [Radim Hladík](https://stss.flu.cas.cz/all/people/radim-hladik) (Main author and lead developer)
   - general inquiries, Requal roadmap, development, features and troubleshooting, [GitHub issues](https://github.com/RE-QDA/requal/issues)
