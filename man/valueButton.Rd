@@ -12,24 +12,35 @@ valueButton(
   width = NULL,
   disabled = FALSE,
   class = NULL,
+  priorityEvent = FALSE,
   ...
 )
 }
 \arguments{
-\item{inputId}{A character string representing the base input ID for the button.}
+\item{inputId}{Character string for the base input ID.}
 
-\item{value}{A numeric or character value to be associated with the button.}
+\item{value}{Numeric or character value associated with the button; should be unique across the shared base input ID.}
 
-\item{label}{A character string for the button's label. Defaults to \code{NULL}.
-Additional arguments passed to \code{actionButton}.}
+\item{label}{Character string for the button label. Defaults to \code{NULL}.}
+
+\item{icon}{Icon to display on the button. Defaults to \code{NULL}.}
+
+\item{width}{Character string specifying the button's width. Defaults to \code{NULL}.}
+
+\item{disabled}{Logical indicating if the button is disabled. Defaults to \code{FALSE}.}
+
+\item{class}{Additional CSS classes for the button. Defaults to \code{NULL}.}
+
+\item{priorityEvent}{Logical indicating if the input should update on repeated clicks. Defaults to \code{FALSE}.}
+
+\item{...}{Additional arguments passed to \code{actionButton}.}
 }
 \value{
 A Shiny action button with a unique ID and shared input value.
 }
 \description{
-This function creates an action button with a unique ID and shared input value,
-allowing multiple buttons to update the same Shiny input.
+Generates an action button with a unique ID and shared input value, enabling multiple buttons to update a single Shiny input.
 }
 \examples{
-valueButton(ns("my_button"), value = 1, label = "Click Me", class = "btn-primary")
+valueButton(ns("my_button"), value = 1, label = "Click Me", class = "btn-primary", priorityEvent = FALSE)
 }

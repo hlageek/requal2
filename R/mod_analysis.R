@@ -12,6 +12,7 @@ mod_analysis_ui <- function(id) {
   tagList(
     fluidRow(
       class = "module_tools",
+      actionButton(ns("test"), "test"),
       mod_rql_button_ui(
         ns("filter_ui"),
         label = "Filter segments",
@@ -46,7 +47,10 @@ mod_analysis_server <- function(id, glob) {
     ns <- session$ns
 
     loc <- reactiveValues()
-
+    segment_more_submodule <- reactiveVal(NULL)
+    observeEvent(input$test, {
+      browser()
+    })
     if (golem::get_golem_options(which = "mode") == "server") {
       observeEvent(input$user_filter, {
         loc$user_filter <- input$user_filter
@@ -215,6 +219,7 @@ mod_analysis_server <- function(id, glob) {
             loc$segments_df$code_color
           ),
           ~ format_segments(
+            ns = ns,
             segment_id = ..1,
             segment_text = ..2,
             segment_document_id = ..3,
@@ -234,7 +239,38 @@ mod_analysis_server <- function(id, glob) {
       }
     })
 
-    # for download modules
+    # More and recoding --------------------
+
+    # Create reactive value outside observeEvent
+    segment_data <- reactiveVal()
+
+    # Create ONE module outside observeEvent - pass it as a reactive expression
+
+    observeEvent(input$segments_more_btn, {
+      removeUI(".segment_more_instance", multiple = TRUE)
+
+      # Update the data for the module
+      mod_segment_more_server(
+        "segment_more_reusable",
+        segment_id = reactive(input$segments_more_btn)
+      )
+
+      # Just recreate the UI, reuse the same module
+      insertUI(
+        selector = paste0(
+          "#",
+          ns("segments_more_btn"),
+          input$segments_more_btn
+        ),
+        where = "afterEnd",
+        ui = div(
+          class = "segment_more_instance",
+          mod_segment_more_ui(ns("segment_more_reusable"))
+        )
+      )
+    })
+
+    # for download modules ------------------
     observeEvent(
       {
         loc$segments_df

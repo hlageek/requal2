@@ -541,10 +541,11 @@ valueButton <- function(
   width = NULL,
   disabled = FALSE,
   class = NULL,
+  priorityEvent = FALSE,
   ...
 ) {
   # Create a unique button ID by appending the value
-  buttonId <- paste0(inputId, "_", value)
+  buttonId <- paste0(inputId, value)
 
   # Return an actionButton with the onclick event to set the shared input value
   actionButton(
