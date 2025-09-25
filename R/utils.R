@@ -514,23 +514,60 @@ button_is_on <- function(button_input) {
 }
 
 # Value button
+
+#' Create a Value Button
+#'
+#' Generates an action button with a unique ID and shared input value, enabling multiple buttons to update a single Shiny input.
+#'
+#' @param inputId Character string for the base input ID.
+#' @param value Numeric or character value associated with the button; should be unique across the shared base input ID.
+#' @param label Character string for the button label. Defaults to \code{NULL}.
+#' @param icon Icon to display on the button. Defaults to \code{NULL}.
+#' @param width Character string specifying the button's width. Defaults to \code{NULL}.
+#' @param disabled Logical indicating if the button is disabled. Defaults to \code{FALSE}.
+#' @param class Additional CSS classes for the button. Defaults to \code{NULL}.
+#' @param priorityEvent Logical indicating if the input should update on repeated clicks. Defaults to \code{FALSE}.
+#' @param ... Additional arguments passed to \code{actionButton}.
+#'
+#' @return A Shiny action button with a unique ID and shared input value.
+#'
+#' @examples
+#' valueButton(ns("my_button"), value = 1, label = "Click Me", class = "btn-primary", priorityEvent = FALSE)
 valueButton <- function(
   inputId,
   value,
-  label,
+  label = NULL,
   icon = NULL,
   width = NULL,
   disabled = FALSE,
+  class = NULL,
   ...
 ) {
+  # Create a unique button ID by appending the value
+  buttonId <- paste0(inputId, "_", value)
+
+  # Return an actionButton with the onclick event to set the shared input value
   actionButton(
-    inputId = inputId,
+    inputId = buttonId,
     label = label,
     icon = icon,
-    class = c("value-button", class),
     `data-value` = value,
     width = width,
     disabled = disabled,
-    ...
+    class = paste("value-button", class),
+    ...,
+    onclick = if (priorityEvent) {
+      sprintf(
+        "Shiny.setInputValue('%s', %s, {priority: 'event'})",
+        inputId,
+        value
+      )
+    } else {
+      sprintf(
+        "Shiny.setInputValue('%s', %s)",
+        inputId,
+        value
+      )
+    }
   )
 }
