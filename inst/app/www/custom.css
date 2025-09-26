@@ -113,15 +113,17 @@ text-wrap: wrap;
 .segment_more {
   position: absolute;
   right: 0;
-  top: 100%; /* Appears below the button */
-  width: 60vw;
+  top: 100%; 
+  max-width: 60vw;
+  min-width: 20vw;
+  width: 100%;
   background: white;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   padding: 10px;
   z-index: 1000;
-  margin-top: 0px; /* Small gap from button */
+  margin-top: 0px; 
 }
 
 article {

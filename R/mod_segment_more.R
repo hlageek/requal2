@@ -18,15 +18,20 @@ mod_segment_more_ui <- function(id) {
 mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    mod_rql_hidden_ui_server("rql_hidden_segment_tools")
 
     # Initialize reactiveValues to store data
     loc <- reactiveValues()
+    loc$toolbox <- mod_rql_hidden_ui_server("rql_hidden_segment_tools")
 
     # Use observeEvent to update loc when segment_id changes
     observeEvent(segment_id(), {
       req(segment_id()) # Ensure segment_id is available
       current_segment_id <- segment_id() # Convert reactiveVal to normal variable
+
+      # Reset toolbox state for new segment
+      if (!is.null(loc$toolbox)) {
+        loc$toolbox(FALSE)
+      }
 
       loc$segment_df <- dplyr::tbl(glob$pool, "segments") %>%
         dplyr::filter(.data$segment_id == as.integer(current_segment_id)) %>%
@@ -88,31 +93,44 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
       tagList(
         tags$style(HTML(
           "
-          .segment_outline {
-            white-space: pre-wrap;
-            outline: dashed 2px #FF6347;
-            background-color: #FFF8DC; 
-            padding: 5px; 
-            border-radius: 5px; 
-          }
-        "
+      .segment_container {
+        display: flex;
+        flex-direction: row-reverse; /* Info box on the right */
+        width: 100%;
+        max-width: 1000px; /* Overall container width */
+      }
+      .info_box {
+        width: 300px;
+        min-width: 20vw;
+        max-width: 40vw;
+        padding-left: 30px;
+        scrollbar-width: thin;
+      }
+      .quoted_segment {
+        flex: 1; /* Allow to grow */
+        padding: 10px; /* Space between columns */
+        min-width: 40vw; /* Minimum width for expansion */
+        max-width: 60vw; /* Maximum width for expansion */
+        max-height: 80vh;
+        background-color: white;
+        text-align: left;
+        overflow-y: scroll;
+        scrollbar-width: thin;
+      }
+      .segment_outline {
+        white-space: pre-wrap;
+        background-color: #FFF8DC; /* Background for readability */
+        padding: 10px; /* Padding for content */
+        border-radius: 5px; 
+        box-sizing: border-box; /* Include padding in width */
+        outline: dashed 2px #FF6347; /* Optional: visual outline */
+      }
+    "
         )),
-        fluidRow(
-          column(
-            width = 6,
-            style = "text-align: left;",
-            div(
-              div(id = ns("pre_text"), style = "white-space: pre-wrap;"),
-              div(
-                id = ns("segment_quote"),
-                loc$segment_df$segment_text,
-                style = "white-space: pre-wrap;"
-              ),
-              div(id = ns("post_text"), style = "white-space: pre-wrap;")
-            )
-          ),
-          column(
-            width = 6,
+        div(
+          class = "segment_container",
+          div(
+            class = "info_box",
             style = "text-align: left;",
             div(
               style = "text-align: right;",
@@ -138,12 +156,38 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
                 recode_block(ns, loc$code_choices)
               )
             )
-          )
+          ),
+          shinyjs::hidden(div(
+            id = ns("quoted_segment"),
+            class = "quoted_segment",
+            div(
+              div(id = ns("pre_text"), style = "white-space: pre-wrap;"),
+              div(
+                id = ns("segment_quote"),
+                loc$segment_df$segment_text,
+                style = "white-space: pre-wrap;"
+              ),
+              div(id = ns("post_text"), style = "white-space: pre-wrap;")
+            )
+          ))
         )
       )
     })
 
+    observeEvent(
+      loc$toolbox(),
+      {
+        # Toggle visibility of the quoted segment
+        if (loc$toolbox()) {
+          shinyjs::show("quoted_segment")
+        } else {
+          shinyjs::hide("quoted_segment")
+        }
+      }
+    )
+
     observeEvent(input$close_btn, {
+      loc$toolbox(FALSE) # Reset toolbox state before closing
       removeUI(paste0(".", parent_class), multiple = TRUE)
     })
 
@@ -155,17 +199,36 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         dplyr::filter(.data$doc_id == loc$segment_df$doc_id) %>%
         dplyr::pull(doc_text)
 
-      # Extract pre and post context text
-      pre_text <- stringr::str_sub(
-        text,
-        loc$segment_df$segment_start - (input$adjust_context_window + 1),
-        loc$segment_df$segment_start - 1
+      # Calculate safe indices for pre and post text
+      text_length <- nchar(text)
+      segment_start <- loc$segment_df$segment_start
+      segment_end <- loc$segment_df$segment_end
+
+      # Constrain pre_text indices (adjusted for your original logic)
+      pre_start <- max(1, segment_start - (input$adjust_context_window + 1))
+      pre_end <- max(1, segment_start - 1)
+
+      # Constrain post_text indices (adjusted for your original logic)
+      post_start <- min(text_length, segment_end + 1)
+      post_end <- min(
+        text_length,
+        segment_end + (input$adjust_context_window - 1)
       )
-      post_text <- stringr::str_sub(
-        text,
-        loc$segment_df$segment_end + 1,
-        loc$segment_df$segment_end + (input$adjust_context_window - 1)
-      )
+
+      # Extract pre and post context text with safe indices
+      pre_text <- if (pre_start <= pre_end && input$adjust_context_window > 0) {
+        stringr::str_sub(text, pre_start, pre_end)
+      } else {
+        ""
+      }
+
+      post_text <- if (
+        post_start <= post_end && input$adjust_context_window > 0
+      ) {
+        stringr::str_sub(text, post_start, post_end)
+      } else {
+        ""
+      }
 
       # Update the HTML content
       shinyjs::html("pre_text", pre_text)

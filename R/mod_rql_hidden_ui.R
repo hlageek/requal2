@@ -26,7 +26,11 @@ mod_rql_hidden_ui_ui <- function(id, title, hidden_tags, ...) {
 mod_rql_hidden_ui_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    ## Observe advanced toolbox display ----
+
+    # Create a reactive value to track the visibility state
+    toolbox_visible <- reactiveVal(FALSE)
+
+    # Observe advanced toolbox display
     observeEvent(input$btn_toolbox, {
       golem::invoke_js("toggle_icon_angles", list(id = ns("btn_toolbox")))
       shinyjs::toggle(
@@ -34,6 +38,12 @@ mod_rql_hidden_ui_server <- function(id) {
         anim = TRUE,
         animType = "slide"
       )
+
+      # Toggle the visibility state
+      toolbox_visible(!toolbox_visible())
     })
+
+    # Return the reactive value
+    return(toolbox_visible)
   })
 }
