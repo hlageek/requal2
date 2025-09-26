@@ -114,7 +114,7 @@ text-wrap: wrap;
   position: absolute;
   right: 0;
   top: 100%; /* Appears below the button */
-  width: 300px;
+  width: 60vw;
   background: white;
   border: 1px solid #ddd;
   border-radius: 8px;
