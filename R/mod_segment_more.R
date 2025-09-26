@@ -18,12 +18,17 @@ mod_segment_more_ui <- function(id) {
 mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+    mod_rql_hidden_ui_server("rql_hidden_segment_tools")
 
-    output$segment_details <- renderUI({
+    # Initialize reactiveValues to store data
+    loc <- reactiveValues()
+
+    # Use observeEvent to update loc when segment_id changes
+    observeEvent(segment_id(), {
       req(segment_id()) # Ensure segment_id is available
       current_segment_id <- segment_id() # Convert reactiveVal to normal variable
 
-      segment_df <- dplyr::tbl(glob$pool, "segments") %>%
+      loc$segment_df <- dplyr::tbl(glob$pool, "segments") %>%
         dplyr::filter(.data$segment_id == as.integer(current_segment_id)) %>%
         dplyr::inner_join(
           dplyr::tbl(glob$pool, "codes") %>%
@@ -33,8 +38,11 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         dplyr::inner_join(dplyr::tbl(glob$pool, "users"), by = "user_id") %>%
         dplyr::collect()
 
-      segment_categories <- dplyr::tbl(glob$pool, "categories_codes_map") %>%
-        dplyr::filter(.data$code_id %in% segment_df$code_id) %>%
+      loc$segment_categories <- dplyr::tbl(
+        glob$pool,
+        "categories_codes_map"
+      ) %>%
+        dplyr::filter(.data$code_id %in% loc$segment_df$code_id) %>%
         dplyr::select(code_id, category_id) %>%
         dplyr::inner_join(
           dplyr::tbl(glob$pool, "categories"),
@@ -42,13 +50,13 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         ) %>%
         dplyr::collect()
 
-      segment_documents <- dplyr::tbl(glob$pool, "documents") %>%
-        dplyr::filter(.data$doc_id %in% segment_df$doc_id) %>%
+      loc$segment_documents <- dplyr::tbl(glob$pool, "documents") %>%
+        dplyr::filter(.data$doc_id %in% loc$segment_df$doc_id) %>%
         dplyr::collect()
 
       # Get all available codes (excluding current one)
-      codes_df <- dplyr::tbl(glob$pool, "codes") %>%
-        dplyr::filter(.data$code_id != segment_df$code_id) %>%
+      loc$codes_df <- dplyr::tbl(glob$pool, "codes") %>%
+        dplyr::filter(.data$code_id != loc$segment_df$code_id) %>%
         dplyr::select(
           code_id,
           code_name,
@@ -63,25 +71,48 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         !is.null(glob$user$data) &&
           glob$user$data$codebook_other_view != 1
       ) {
-        codes_df <- codes_df %>%
+        loc$codes_df <- loc$codes_df %>%
           dplyr::filter(user_id == !!glob$user$user_id)
       }
 
       # Create choice list for select input
-      code_choices <- stats::setNames(
-        codes_df$code_id,
-        codes_df$code_name
+      loc$code_choices <- stats::setNames(
+        loc$codes_df$code_id,
+        loc$codes_df$code_name
       )
+    })
+
+    output$segment_details <- renderUI({
+      req(loc$segment_df) # Ensure data is available
 
       tagList(
+        tags$style(HTML(
+          "
+          .segment_outline {
+            white-space: pre-wrap;
+            outline: dashed 2px #FF6347;
+            background-color: #FFF8DC; 
+            padding: 5px; 
+            border-radius: 5px; 
+          }
+        "
+        )),
         fluidRow(
           column(
-            width = 8,
+            width = 6,
             style = "text-align: left;",
-            p(segment_df$segment_text, style = "white-space: pre-wrap;")
+            div(
+              div(id = ns("pre_text"), style = "white-space: pre-wrap;"),
+              div(
+                id = ns("segment_quote"),
+                loc$segment_df$segment_text,
+                style = "white-space: pre-wrap;"
+              ),
+              div(id = ns("post_text"), style = "white-space: pre-wrap;")
+            )
           ),
           column(
-            width = 4,
+            width = 6,
             style = "text-align: left;",
             div(
               style = "text-align: right;",
@@ -93,14 +124,19 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
             ),
             segment_info_block(
               ns,
-              segment_df,
-              segment_categories,
-              segment_documents
+              loc$segment_df,
+              loc$segment_categories,
+              loc$segment_documents
             ),
             hr(),
-            tabsetPanel(
-              tabPanel("Recode", recode_block(ns, code_choices)),
-              tabPanel("Adjust", adjust_block(ns))
+            mod_rql_hidden_ui_ui(
+              ns("rql_hidden_segment_tools"),
+              title = NULL,
+              hidden_tags = tagList(
+                adjust_block(ns),
+                hr(),
+                recode_block(ns, loc$code_choices)
+              )
             )
           )
         )
@@ -112,15 +148,40 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
     })
 
     observeEvent(input$adjust_context_window, {
-      pre_text <- dplyr::tbl(glob$pool, "documents") %>%
-        dplyr::filter(.data$doc_id == segment_df$doc_id) %>%
+      req(loc$segment_df) # Ensure data is available
+
+      # Get the document text
+      text <- dplyr::tbl(glob$pool, "documents") %>%
+        dplyr::filter(.data$doc_id == loc$segment_df$doc_id) %>%
         dplyr::pull(doc_text)
-      print(pre_text)
+
+      # Extract pre and post context text
+      pre_text <- stringr::str_sub(
+        text,
+        loc$segment_df$segment_start - (input$adjust_context_window + 1),
+        loc$segment_df$segment_start - 1
+      )
+      post_text <- stringr::str_sub(
+        text,
+        loc$segment_df$segment_end + 1,
+        loc$segment_df$segment_end + (input$adjust_context_window - 1)
+      )
+
+      # Update the HTML content
+      shinyjs::html("pre_text", pre_text)
+      shinyjs::html("post_text", post_text)
+
+      # Conditionally add or remove the class
+      if (input$adjust_context_window > 0) {
+        shinyjs::addClass("segment_quote", "segment_outline")
+      } else {
+        shinyjs::removeClass("segment_quote", "segment_outline")
+      }
     })
   })
 }
 
-# Locally scoped helper functions -------------------
+# Helper functions for this module -----------------------
 segment_info_block <- function(
   ns,
   segment_df,
