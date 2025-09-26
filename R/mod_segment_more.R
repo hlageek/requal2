@@ -16,7 +16,7 @@ mod_segment_more_ui <- function(id) {
 #' segment_more Server Functions
 #'
 #' @noRd
-mod_segment_more_server <- function(id, segment_id, parent_class) {
+mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 

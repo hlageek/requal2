@@ -246,6 +246,7 @@ mod_analysis_server <- function(id, glob) {
     # Create server module outside observeEvent - define it with reactive value
     mod_segment_more_server(
       "segment_more",
+      glob = glob,
       segment_id = segment_id_rv,
       parent_class = segment_more_class
     )
