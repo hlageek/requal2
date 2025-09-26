@@ -9,15 +9,8 @@
 #' @importFrom shiny NS tagList
 mod_segment_more_ui <- function(id) {
   ns <- NS(id)
-  div(
-    class = "segment_more", # Note: changed to match your removeUI selector
-    tags$button(
-      "×",
-      onclick = "$(this).closest('.segment_more_instance').remove();",
-      style = "background: none; border: none; font-size: 18px; cursor: pointer; padding: 0; width: 20px; height: 20px;"
-    ),
-    uiOutput(ns("segment_details"))
-  )
+
+  uiOutput(ns("segment_details"))
 }
 
 #' segment_more Server Functions
@@ -27,10 +20,21 @@ mod_segment_more_server <- function(id, segment_id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     loc <- reactiveValues()
-    loc$segment_id <- segment_id()
 
     output$segment_details <- renderUI({
-      div(class = "segment_details", p(paste("test", loc$segment_id)))
+      req(segment_id())
+      tagList(
+        actionButton(
+          ns("close_btn"),
+          "x",
+          style = "background: none; border: none; font-size: 18px; cursor: pointer; padding: 0; width: 20px; height: 20px; margin-top: -20px;"
+        ),
+        p(paste("test", segment_id()))
+      )
+    })
+    observeEvent(input$close_btn, {
+      removeUI(paste0("#", ns("segment_details")), multiple = TRUE)
+      removeUI(paste0(".segment_more"), multiple = TRUE)
     })
   })
 }

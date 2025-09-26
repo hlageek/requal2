@@ -242,18 +242,16 @@ mod_analysis_server <- function(id, glob) {
     # More and recoding --------------------
 
     # Create reactive value outside observeEvent
-    segment_data <- reactiveVal()
-
+    segment_id_rv <- reactiveVal(NULL)
+    # Update the data for the module
+    mod_segment_more_server(
+      "segment_more_reusable",
+      segment_id = segment_id_rv
+    )
     # Create ONE module outside observeEvent - pass it as a reactive expression
 
     observeEvent(input$segments_more_btn, {
-      removeUI(".segment_more_instance", multiple = TRUE)
-
-      # Update the data for the module
-      mod_segment_more_server(
-        "segment_more_reusable",
-        segment_id = reactive(input$segments_more_btn)
-      )
+      removeUI(".segment_more", multiple = TRUE)
 
       # Just recreate the UI, reuse the same module
       insertUI(
@@ -264,10 +262,11 @@ mod_analysis_server <- function(id, glob) {
         ),
         where = "afterEnd",
         ui = div(
-          class = "segment_more_instance",
+          class = "segment_more",
           mod_segment_more_ui(ns("segment_more_reusable"))
         )
       )
+      segment_id_rv(input$segments_more_btn)
     })
 
     # for download modules ------------------
