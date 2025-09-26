@@ -238,12 +238,13 @@ mod_analysis_server <- function(id, glob) {
       }
     })
 
-    # More and recoding --------------------
+    # Segments extras menu and recoding --------------------
 
     # Create reactive value outside observeEvent
     segment_id_rv <- reactiveVal(NULL)
+    # Define class for removal of UI
     segment_more_class <- ns("segment_more")
-    # Create server module outside observeEvent - define it with reactive value
+    # Create server module outside observeEvent - pass the reactive value
     mod_segment_more_server(
       "segment_more",
       glob = glob,
@@ -255,6 +256,7 @@ mod_analysis_server <- function(id, glob) {
       # Remove any existing segment_more UI
       removeUI(paste0(".", segment_more_class), multiple = TRUE)
 
+      # Insert new module UI where it was called from
       insertUI(
         selector = paste0(
           "#",
@@ -263,7 +265,7 @@ mod_analysis_server <- function(id, glob) {
         ),
         where = "afterEnd",
         ui = div(
-          class = paste(segment_more_class, "segment_more"),
+          class = paste(segment_more_class, "segment_more"), # see .segment_more in custom.css
           mod_segment_more_ui(ns("segment_more"))
         )
       )
