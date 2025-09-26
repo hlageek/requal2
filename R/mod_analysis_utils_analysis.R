@@ -101,7 +101,7 @@ format_segments <- function(
           icon = shiny::icon("ellipsis"),
           class = "segment_badge",
           style = "position: relative;",
-          priorityEvent = FALSE
+          priorityEvent = TRUE
         )
       ),
 

@@ -12,7 +12,6 @@ mod_analysis_ui <- function(id) {
   tagList(
     fluidRow(
       class = "module_tools",
-      actionButton(ns("test"), "test"),
       mod_rql_button_ui(
         ns("filter_ui"),
         label = "Filter segments",
@@ -27,7 +26,10 @@ mod_analysis_ui <- function(id) {
     fluidRow(
       class = "module_content",
       uiOutput(ns("segments")) %>%
-        tagAppendAttributes(class = "scrollable80")
+        tagAppendAttributes(
+          class = "scrollable80",
+          style = "padding-right: 50px"
+        )
     )
     # ###########
     #   column(
@@ -48,9 +50,7 @@ mod_analysis_server <- function(id, glob) {
 
     loc <- reactiveValues()
     segment_more_submodule <- reactiveVal(NULL)
-    observeEvent(input$test, {
-      browser()
-    })
+
     if (golem::get_golem_options(which = "mode") == "server") {
       observeEvent(input$user_filter, {
         loc$user_filter <- input$user_filter
