@@ -49,7 +49,6 @@ mod_analysis_server <- function(id, glob) {
     ns <- session$ns
 
     loc <- reactiveValues()
-    segment_more_submodule <- reactiveVal(NULL)
 
     if (golem::get_golem_options(which = "mode") == "server") {
       observeEvent(input$user_filter, {
@@ -243,17 +242,18 @@ mod_analysis_server <- function(id, glob) {
 
     # Create reactive value outside observeEvent
     segment_id_rv <- reactiveVal(NULL)
-    # Update the data for the module
+    segment_more_class <- ns("segment_more")
+    # Create server module outside observeEvent - define it with reactive value
     mod_segment_more_server(
-      "segment_more_reusable",
-      segment_id = segment_id_rv
+      "segment_more",
+      segment_id = segment_id_rv,
+      parent_class = segment_more_class
     )
-    # Create ONE module outside observeEvent - pass it as a reactive expression
 
     observeEvent(input$segments_more_btn, {
-      removeUI(".segment_more", multiple = TRUE)
+      # Remove any existing segment_more UI
+      removeUI(paste0(".", segment_more_class), multiple = TRUE)
 
-      # Just recreate the UI, reuse the same module
       insertUI(
         selector = paste0(
           "#",
@@ -262,11 +262,12 @@ mod_analysis_server <- function(id, glob) {
         ),
         where = "afterEnd",
         ui = div(
-          class = "segment_more",
-          mod_segment_more_ui(ns("segment_more_reusable"))
+          class = paste(segment_more_class, "segment_more"),
+          mod_segment_more_ui(ns("segment_more"))
         )
       )
-      segment_id_rv(input$segments_more_btn)
+
+      segment_id_rv(input$segments_more_btn) # Triggers new render in the server
     })
 
     # for download modules ------------------

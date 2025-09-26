@@ -16,10 +16,9 @@ mod_segment_more_ui <- function(id) {
 #' segment_more Server Functions
 #'
 #' @noRd
-mod_segment_more_server <- function(id, segment_id) {
+mod_segment_more_server <- function(id, segment_id, parent_class) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    loc <- reactiveValues()
 
     output$segment_details <- renderUI({
       req(segment_id())
@@ -32,9 +31,9 @@ mod_segment_more_server <- function(id, segment_id) {
         p(paste("test", segment_id()))
       )
     })
+
     observeEvent(input$close_btn, {
-      removeUI(paste0("#", ns("segment_details")), multiple = TRUE)
-      removeUI(paste0(".segment_more"), multiple = TRUE)
+      removeUI(paste0(".", parent_class), multiple = TRUE)
     })
   })
 }
