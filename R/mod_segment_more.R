@@ -191,6 +191,145 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
       removeUI(paste0(".", parent_class), multiple = TRUE)
     })
 
+    # Dynamic button text based on action
+    output$recode_btn_text <- renderText({
+      switch(
+        input$recode_action,
+        "alter" = "Alter Code",
+        "add" = "Add Code",
+        "split" = "Split Code",
+        "remove" = "Delete Segment"
+      )
+    })
+
+    # Update button styling based on action
+    observe({
+      if (!is.null(input$recode_action)) {
+        if (input$recode_action == "remove") {
+          shinyjs::removeClass("recode_btn", "btn-warning")
+          shinyjs::addClass("recode_btn", "btn-danger")
+        } else {
+          shinyjs::removeClass("recode_btn", "btn-danger")
+          shinyjs::addClass("recode_btn", "btn-warning")
+        }
+      }
+    })
+
+    # Handle recode button click
+    observeEvent(input$recode_btn, {
+      req(loc$segment_df)
+
+      action <- input$recode_action
+      segment_id <- loc$segment_df$segment_id
+      current_code <- loc$segment_df$code_name
+
+      if (action == "remove") {
+        showNotification(
+          paste0("Would DELETE segment ", segment_id, " (", current_code, ")"),
+          type = "error",
+          duration = 3
+        )
+      } else {
+        if (input$create_new_code) {
+          req(input$new_code_name)
+          if (input$new_code_name == "") {
+            showNotification("Please enter a code name", type = "error")
+            return()
+          }
+
+          new_code_info <- paste0(
+            input$new_code_name,
+            if (input$new_code_description != "") {
+              paste0(" (", input$new_code_description, ")")
+            } else {
+              ""
+            },
+            " [",
+            input$new_code_color,
+            "]"
+          )
+
+          message <- switch(
+            action,
+            "alter" = paste0(
+              "Would ALTER segment ",
+              segment_id,
+              " from '",
+              current_code,
+              "' to NEW CODE: ",
+              new_code_info
+            ),
+            "add" = paste0(
+              "Would ADD NEW CODE: ",
+              new_code_info,
+              " to segment ",
+              segment_id,
+              " (keeping '",
+              current_code,
+              "')"
+            ),
+            "split" = paste0(
+              "Would SPLIT segment ",
+              segment_id,
+              " with NEW CODE: ",
+              new_code_info,
+              if (input$keep_parent_on_split) {
+                " (keeping parent)"
+              } else {
+                " (removing parent)"
+              }
+            )
+          )
+        } else {
+          req(input$recode_select)
+          if (input$recode_select == "") {
+            showNotification("Please select a code", type = "error")
+            return()
+          }
+
+          selected_code_name <- names(loc$code_choices)[
+            loc$code_choices == input$recode_select
+          ]
+
+          message <- switch(
+            action,
+            "alter" = paste0(
+              "Would ALTER segment ",
+              segment_id,
+              " from '",
+              current_code,
+              "' to '",
+              selected_code_name,
+              "'"
+            ),
+            "add" = paste0(
+              "Would ADD '",
+              selected_code_name,
+              "' to segment ",
+              segment_id,
+              " (keeping '",
+              current_code,
+              "')"
+            ),
+            "split" = paste0(
+              "Would SPLIT segment ",
+              segment_id,
+              " with '",
+              selected_code_name,
+              "'",
+              if (input$keep_parent_on_split) {
+                " (keeping parent)"
+              } else {
+                " (removing parent)"
+              }
+            )
+          )
+        }
+
+        showNotification(message, type = "message", duration = 4)
+      }
+    })
+
     observeEvent(input$adjust_context_window, {
       req(loc$segment_df) # Ensure data is available
 
@@ -302,21 +441,98 @@ recode_block <- function(ns, code_choices) {
       "Recode action:",
       choices = list(
         "Alter" = "alter",
-        "Add" = "add"
+        "Add" = "add",
+        "Split" = "split",
+        "Remove" = "remove"
       ),
       selected = "add",
       inline = TRUE
     ),
-    selectInput(
-      ns("recode_select"),
-      "Select new code:",
-      choices = c("", code_choices),
-      selected = ""
+
+    conditionalPanel(
+      condition = "input.recode_action != 'remove'",
+      ns = ns,
+
+      wellPanel(
+        checkboxInput(
+          ns("create_new_code"),
+          "Create new code",
+          value = FALSE
+        ),
+
+        conditionalPanel(
+          condition = "!input.create_new_code",
+          ns = ns,
+          selectInput(
+            ns("recode_select"),
+            "Select code:",
+            choices = c("", code_choices),
+            selected = ""
+          )
+        ),
+
+        conditionalPanel(
+          condition = "input.create_new_code",
+          ns = ns,
+          textInput(
+            ns("new_code_name"),
+            "Code name:",
+            placeholder = "Enter code name"
+          ),
+          textInput(
+            ns("new_code_description"),
+            "Code description:",
+            placeholder = "Enter description (optional)"
+          ),
+          colourpicker::colourInput(
+            ns("new_code_color"),
+            "Code color:",
+            value = "#3498db",
+            showColour = "background"
+          )
+        )
+      ),
+
+      conditionalPanel(
+        condition = "input.recode_action == 'split'",
+        ns = ns,
+        div(
+          style = "margin-top: 10px; padding: 8px; background-color: #f8f9fa; border-radius: 4px;",
+          strong("Split options:"),
+          checkboxInput(
+            ns("keep_parent_on_split"),
+            "Keep parent code on segment",
+            value = TRUE
+          ),
+          p(
+            style = "font-size: 0.9em; color: #666; margin-top: 5px;",
+            "Note: Only child codes of the current code will be available for selection."
+          )
+        )
+      )
     ),
-    actionButton(
-      ns("recode_btn"),
-      "Recode",
-      class = "btn-warning"
+
+    conditionalPanel(
+      condition = "input.recode_action == 'remove'",
+      ns = ns,
+      div(
+        style = "margin-top: 10px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;",
+        p(
+          style = "margin: 0; color: #856404;",
+          HTML(
+            "<strong>Warning:</strong> This will permanently delete the segment."
+          )
+        )
+      )
+    ),
+
+    div(
+      style = "margin-top: 15px;",
+      actionButton(
+        ns("recode_btn"),
+        textOutput(ns("recode_btn_text"), inline = TRUE),
+        class = "btn-warning"
+      )
     )
   )
 }
