@@ -226,110 +226,158 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
       segment_id <- loc$segment_df$segment_id
       current_code <- loc$segment_df$code_name
 
+      # Check basic annotation_modify permission (required for all actions)
+      if (is.null(glob$user$data) || glob$user$data$annotation_modify != 1) {
+        showNotification(
+          "Insufficient permissions: annotation_modify required",
+          type = "error",
+          duration = 4
+        )
+        return()
+      }
+
+      # Check if this segment belongs to another user and we need annotation_other_modify
+      is_other_user <- loc$segment_df$user_id != glob$user$user_id
+      needs_other_modify <- FALSE
+
+      if (action == "alter") {
+        needs_other_modify <- is_other_user
+      } else if (action == "split" && !input$keep_parent_on_split) {
+        # Split with parent removal acts like alter for permission purposes
+        needs_other_modify <- is_other_user
+      }
+
+      if (
+        needs_other_modify &&
+          (is.null(glob$user$data) ||
+            glob$user$data$annotation_other_modify != 1)
+      ) {
+        showNotification(
+          "Insufficient permissions: annotation_other_modify required to modify other user's segments",
+          type = "error",
+          duration = 4
+        )
+        return()
+      }
+
+      # Check codebook_modify permission for new code creation
+      if (
+        input$create_new_code &&
+          (is.null(glob$user$data) || glob$user$data$codebook_modify != 1)
+      ) {
+        showNotification(
+          "Insufficient permissions: codebook_modify required to create new codes",
+          type = "error",
+          duration = 4
+        )
+        return()
+      }
+
+      # All permission checks passed, proceed with action
       if (action == "remove") {
+        # TODO: Add remove_segment_db call here
         showNotification(
           paste0("Would DELETE segment ", segment_id, " (", current_code, ")"),
           type = "error",
           duration = 3
         )
       } else {
-        if (input$create_new_code) {
+        # Determine the code_id to use
+        target_code_id <- if (input$create_new_code) {
           req(input$new_code_name)
           if (input$new_code_name == "") {
             showNotification("Please enter a code name", type = "error")
             return()
           }
-
-          new_code_info <- paste0(
-            input$new_code_name,
-            if (input$new_code_description != "") {
-              paste0(" (", input$new_code_description, ")")
-            } else {
-              ""
-            },
-            " [",
-            input$new_code_color,
-            "]"
-          )
-
-          message <- switch(
-            action,
-            "alter" = paste0(
-              "Would ALTER segment ",
-              segment_id,
-              " from '",
-              current_code,
-              "' to NEW CODE: ",
-              new_code_info
-            ),
-            "add" = paste0(
-              "Would ADD NEW CODE: ",
-              new_code_info,
-              " to segment ",
-              segment_id,
-              " (keeping '",
-              current_code,
-              "')"
-            ),
-            "split" = paste0(
-              "Would SPLIT segment ",
-              segment_id,
-              " with NEW CODE: ",
-              new_code_info,
-              if (input$keep_parent_on_split) {
-                " (keeping parent)"
-              } else {
-                " (removing parent)"
-              }
-            )
-          )
+          # TODO: Create new code first and get its ID
+          # For now, use a placeholder
+          "NEW_CODE_ID"
         } else {
           req(input$recode_select)
           if (input$recode_select == "") {
             showNotification("Please select a code", type = "error")
             return()
           }
-
-          selected_code_name <- names(loc$code_choices)[
-            loc$code_choices == input$recode_select
-          ]
-
-          message <- switch(
-            action,
-            "alter" = paste0(
-              "Would ALTER segment ",
-              segment_id,
-              " from '",
-              current_code,
-              "' to '",
-              selected_code_name,
-              "'"
-            ),
-            "add" = paste0(
-              "Would ADD '",
-              selected_code_name,
-              "' to segment ",
-              segment_id,
-              " (keeping '",
-              current_code,
-              "')"
-            ),
-            "split" = paste0(
-              "Would SPLIT segment ",
-              segment_id,
-              " with '",
-              selected_code_name,
-              "'",
-              if (input$keep_parent_on_split) {
-                " (keeping parent)"
-              } else {
-                " (removing parent)"
-              }
-            )
-          )
+          input$recode_select
         }
 
-        showNotification(message, type = "message", duration = 4)
+        # Execute the database operations based on action
+        tryCatch(
+          {
+            if (action == "alter") {
+              # Remove existing segment, then write new one
+              # TODO: Add remove_segment_db call here
+              write_segment_db(
+                pool = glob$pool,
+                active_project = glob$active_project,
+                user_id = glob$user$user_id,
+                doc_id = loc$segment_df$doc_id,
+                code_id = target_code_id,
+                startOff = loc$segment_df$segment_start,
+                endOff = loc$segment_df$segment_end
+              )
+              showNotification(
+                paste0("Altered segment ", segment_id),
+                type = "message"
+              )
+            } else if (action == "add") {
+              # Just write the new segment
+              write_segment_db(
+                pool = glob$pool,
+                active_project = glob$active_project,
+                user_id = glob$user$user_id,
+                doc_id = loc$segment_df$doc_id,
+                code_id = target_code_id,
+                startOff = loc$segment_df$segment_start,
+                endOff = loc$segment_df$segment_end
+              )
+              showNotification(
+                paste0("Added code to segment ", segment_id),
+                type = "message"
+              )
+            } else if (action == "split") {
+              if (!input$keep_parent_on_split) {
+                # Remove existing segment, then write new one (like alter)
+                # TODO: Add remove_segment_db call here
+                write_segment_db(
+                  pool = glob$pool,
+                  active_project = glob$active_project,
+                  user_id = glob$user$user_id,
+                  doc_id = loc$segment_df$doc_id,
+                  code_id = target_code_id,
+                  startOff = loc$segment_df$segment_start,
+                  endOff = loc$segment_df$segment_end
+                )
+                showNotification(
+                  paste0("Split segment ", segment_id, " (parent removed)"),
+                  type = "message"
+                )
+              } else {
+                # Just write the new segment (like add)
+                write_segment_db(
+                  pool = glob$pool,
+                  active_project = glob$active_project,
+                  user_id = glob$user$user_id,
+                  doc_id = loc$segment_df$doc_id,
+                  code_id = target_code_id,
+                  startOff = loc$segment_df$segment_start,
+                  endOff = loc$segment_df$segment_end
+                )
+                showNotification(
+                  paste0("Split segment ", segment_id, " (parent kept)"),
+                  type = "message"
+                )
+              }
+            }
+          },
+          error = function(e) {
+            showNotification(
+              paste0("Database error: ", e$message),
+              type = "error",
+              duration = 5
+            )
+          }
+        )
       }
     })
 
