@@ -309,7 +309,7 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         glob$pool,
         "categories_codes_map"
       ) %>%
-        dplyr::filter(.data$code_id %in% loc$segment_df$code_id) %>%
+        dplyr::filter(.data$code_id %in% !!loc$segment_df$code_id) %>%
         dplyr::select(code_id, category_id) %>%
         dplyr::inner_join(
           dplyr::tbl(glob$pool, "categories"),
