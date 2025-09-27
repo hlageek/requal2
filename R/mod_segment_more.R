@@ -639,7 +639,7 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
       req(loc$segment_df)
 
       text <- dplyr::tbl(glob$pool, "documents") %>%
-        dplyr::filter(.data$doc_id == loc$segment_df$doc_id) %>%
+        dplyr::filter(.data$doc_id == !!loc$segment_df$doc_id) %>%
         dplyr::pull(doc_text)
 
       text_length <- nchar(text)
