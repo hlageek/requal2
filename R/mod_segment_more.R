@@ -191,28 +191,31 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
       removeUI(paste0(".", parent_class), multiple = TRUE)
     })
 
-    # Dynamic button text based on action
-    output$recode_btn_text <- renderText({
-      switch(
+    # Dynamic button UI
+    output$recode_button_ui <- renderUI({
+      req(input$recode_action)
+      req(isTruthy(input$recode_action))
+
+      button_text <- switch(
         input$recode_action,
         "alter" = "Alter Code",
         "add" = "Add Code",
         "split" = "Split Code",
-        "remove" = "Delete Segment"
+        "remove" = "Delete Segment",
+        ""
       )
-    })
 
-    # Update button styling based on action
-    observe({
-      if (!is.null(input$recode_action)) {
-        if (input$recode_action == "remove") {
-          shinyjs::removeClass("recode_btn", "btn-warning")
-          shinyjs::addClass("recode_btn", "btn-danger")
-        } else {
-          shinyjs::removeClass("recode_btn", "btn-danger")
-          shinyjs::addClass("recode_btn", "btn-warning")
-        }
+      button_class <- if (input$recode_action == "remove") {
+        "btn-danger"
+      } else {
+        "btn-warning"
       }
+
+      actionButton(
+        ns("recode_btn"),
+        button_text,
+        class = button_class
+      )
     })
 
     # Handle recode button click
@@ -445,12 +448,12 @@ recode_block <- function(ns, code_choices) {
         "Split" = "split",
         "Remove" = "remove"
       ),
-      selected = "add",
+      selected = character(0),
       inline = TRUE
     ),
 
     conditionalPanel(
-      condition = "input.recode_action != 'remove'",
+      condition = "input.recode_action == 'alter' || input.recode_action == 'add' || input.recode_action == 'split'",
       ns = ns,
 
       wellPanel(
@@ -526,12 +529,12 @@ recode_block <- function(ns, code_choices) {
       )
     ),
 
-    div(
-      style = "margin-top: 15px;",
-      actionButton(
-        ns("recode_btn"),
-        textOutput(ns("recode_btn_text"), inline = TRUE),
-        class = "btn-warning"
+    conditionalPanel(
+      condition = "input.recode_action != ''",
+      ns = ns,
+      div(
+        style = "margin-top: 15px;",
+        uiOutput(ns("recode_button_ui"))
       )
     )
   )
