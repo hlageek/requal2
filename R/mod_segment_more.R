@@ -182,10 +182,10 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
     check_code_overlaps <- function(target_code_id, segment_df) {
       coded_segments <- dplyr::tbl(glob$pool, "segments") %>%
         dplyr::filter(
-          .data$project_id == as.integer(glob$active_project),
-          .data$user_id == as.integer(glob$user$user_id),
-          .data$doc_id == as.integer(segment_df$doc_id),
-          .data$code_id == as.integer(target_code_id)
+          .data$project_id == !!as.integer(glob$active_project),
+          .data$user_id == !!as.integer(glob$user$user_id),
+          .data$doc_id == !!as.integer(segment_df$doc_id),
+          .data$code_id == !!as.integer(target_code_id)
         ) %>%
         dplyr::select(
           project_id,
@@ -318,13 +318,13 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         dplyr::collect()
 
       loc$segment_documents <- dplyr::tbl(glob$pool, "documents") %>%
-        dplyr::filter(.data$project_id != !!glob$active_project) %>%
+        dplyr::filter(.data$project_id != !!as.integer(glob$active_project)) %>%
         dplyr::filter(.data$doc_id %in% !!loc$segment_df$doc_id) %>%
         dplyr::collect()
 
       # Get available codes (excluding current one)
       loc$codes_df <- dplyr::tbl(glob$pool, "codes") %>%
-        dplyr::filter(.data$project_id != !!glob$active_project) %>%
+        dplyr::filter(.data$project_id != !!as.integer(glob$active_project)) %>%
         dplyr::filter(.data$code_id != !!loc$segment_df$code_id) %>%
         dplyr::select(
           code_id,
