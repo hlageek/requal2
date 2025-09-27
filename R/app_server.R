@@ -58,7 +58,7 @@ app_server <- function(input, output, session) {
   mod_codebook_server("codebook_ui_1", glob)
   # output: glob$category
   mod_categories_server("categories_ui_1", glob)
-  # workdesk ----
+  # annotate tab ----
   # output: glob$segments_observer
   mod_document_code_server("document_code_ui_1", glob)
 

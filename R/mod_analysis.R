@@ -253,8 +253,8 @@ mod_analysis_server <- function(id, glob) {
     )
     observeEvent(inner_values$timestamp, {
       # Code to execute when action changes
-      glob$segments_observer <- glob$segments_observer + 1
       glob$codebook_observer <- glob$codebook_observer + 1
+      glob$segments_observer <- glob$segments_observer + 1
     })
     observeEvent(input$segments_more_btn, {
       # Remove any existing segment_more UI

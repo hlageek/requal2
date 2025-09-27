@@ -195,11 +195,7 @@ validate_new_code <- function(code_name, existing_codes, current_code) {
 create_new_code <- function(code_name, code_description, code_color, glob) {
   codes_input_df <- data.frame(
     code_name = code_name,
-    code_description = if (code_description != "") {
-      code_description
-    } else {
-      NA_character_
-    },
+    code_description = code_description,
     code_color = paste0(
       "rgb(",
       paste(as.vector(grDevices::col2rgb(code_color)), collapse = ", "),
