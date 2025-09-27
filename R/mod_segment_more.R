@@ -318,12 +318,12 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         dplyr::collect()
 
       loc$segment_documents <- dplyr::tbl(glob$pool, "documents") %>%
-        dplyr::filter(.data$doc_id %in% loc$segment_df$doc_id) %>%
+        dplyr::filter(.data$doc_id %in% !!loc$segment_df$doc_id) %>%
         dplyr::collect()
 
       # Get available codes (excluding current one)
       loc$codes_df <- dplyr::tbl(glob$pool, "codes") %>%
-        dplyr::filter(.data$code_id != loc$segment_df$code_id) %>%
+        dplyr::filter(.data$code_id != !!loc$segment_df$code_id) %>%
         dplyr::select(
           code_id,
           code_name,
