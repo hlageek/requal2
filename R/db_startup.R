@@ -590,6 +590,7 @@ add_codes_record <- function(pool, project_id, codes_df, user_id) {
       }
     )
   }
+  return(written_code_id)
 }
 
 add_quickcode_record <- function(pool, project_id, codes_df, user_id) {

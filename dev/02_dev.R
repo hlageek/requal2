@@ -84,7 +84,7 @@ golem::add_module(name = "rql_hidden_ui")
 golem::add_module(name = "memo_segment")
 golem::add_module(name = "memo_editor")
 golem::add_module(name = "codebook_import")
-golem::add_module(name = "segment_more")
+golem::add_module(name = "analysis_extra")
 
 
 ## Add helper functions ----
@@ -96,6 +96,7 @@ golem::add_utils("categories", module = "categories")
 golem::add_utils("document_code", module = "document_code")
 golem::add_utils("doc_manager", module = "doc_manager")
 golem::add_utils("analysis", module = "analysis")
+golem::add_utils("analysis_extra", module = "analysis_extra")
 golem::add_utils("reporting", module = "reporting")
 golem::add_utils("user", module = "user")
 golem::add_utils("memo", module = "memo")

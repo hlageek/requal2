@@ -245,7 +245,7 @@ mod_analysis_server <- function(id, glob) {
     # Define class for removal of UI
     segment_more_class <- ns("segment_more")
     # Create server module outside observeEvent - pass the reactive value
-    inner_values <- mod_segment_more_server(
+    inner_values <- mod_analysis_extra_server(
       "segment_more",
       glob = glob,
       segment_id = segment_id_rv,
@@ -270,7 +270,7 @@ mod_analysis_server <- function(id, glob) {
         where = "afterEnd",
         ui = div(
           class = paste(segment_more_class, "segment_more"), # see .segment_more in custom.css
-          mod_segment_more_ui(ns("segment_more"))
+          mod_analysis_extra_ui(ns("segment_more"))
         )
       )
 
