@@ -245,13 +245,17 @@ mod_analysis_server <- function(id, glob) {
     # Define class for removal of UI
     segment_more_class <- ns("segment_more")
     # Create server module outside observeEvent - pass the reactive value
-    mod_segment_more_server(
+    inner_values <- mod_segment_more_server(
       "segment_more",
       glob = glob,
       segment_id = segment_id_rv,
       parent_class = segment_more_class
     )
-
+    observeEvent(inner_values$timestamp, {
+      # Code to execute when action changes
+      glob$segments_observer <- glob$segments_observer + 1
+      glob$codebook_observer <- glob$codebook_observer + 1
+    })
     observeEvent(input$segments_more_btn, {
       # Remove any existing segment_more UI
       removeUI(paste0(".", segment_more_class), multiple = TRUE)

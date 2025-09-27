@@ -98,7 +98,18 @@ mod_segment_more_server <- function(id, glob, segment_id, parent_class) {
         } else {
           NA_character_
         },
-        code_color = code_color,
+        code_color = paste0(
+          "rgb(",
+          paste(
+            as.vector(
+              grDevices::col2rgb(
+                code_color
+              )
+            ),
+            collapse = ", "
+          ),
+          ")"
+        ),
         project_id = as.integer(glob$active_project),
         user_id = as.integer(glob$user$user_id),
         stringsAsFactors = FALSE
