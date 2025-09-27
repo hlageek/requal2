@@ -540,34 +540,55 @@ add_cases_record <- function(pool, project_id, case_df, user_id) {
 }
 
 add_codes_record <- function(pool, project_id, codes_df, user_id) {
-  res <- DBI::dbWriteTable(
-    pool,
-    "codes",
-    codes_df,
-    append = TRUE,
-    row.names = FALSE
-  )
-  if (res) {
-    written_code_id <- dplyr::tbl(pool, "codes") %>%
-      dplyr::filter(
-        .data$code_name == !!codes_df$code_name,
-        .data$project_id == !!as.integer(project_id),
-        .data$user_id == !!user_id
-      ) %>%
-      dplyr::pull(code_id)
+  db_postgres <- pool::dbGetInfo(pool)$pooledObjectClass != "SQLiteConnection"
+  written_code_id <- NULL
 
-    written_code_id <- written_code_id[written_code_id == max(written_code_id)]
-    log_add_code_record(
-      pool,
-      project_id,
-      codes_df %>%
-        dplyr::mutate(
-          code_id = written_code_id
-        ),
-      user_id
+  tryCatch(
+    {
+      pool::poolWithTransaction(pool, function(conn) {
+        if (db_postgres) {
+          query <- glue::glue_sql(
+            "INSERT INTO codes (project_id, code_name, user_id) VALUES ({project_id}, {codes_df$code_name}, {user_id}) RETURNING code_id",
+            .con = conn
+          )
+          written_code_id <<- DBI::dbGetQuery(conn, query)$code_id
+        } else {
+          DBI::dbWriteTable(
+            conn,
+            "codes",
+            codes_df,
+            append = TRUE,
+            row.names = FALSE
+          )
+          written_code_id <<- DBI::dbGetQuery(
+            conn,
+            "SELECT last_insert_rowid() AS code_id"
+          )$code_id
+        }
+      })
+    },
+    error = function(e) {
+      warning("Transaction failed: ", e$message)
+    }
+  )
+
+  if (!is.null(written_code_id)) {
+    tryCatch(
+      {
+        log_add_code_record(
+          pool,
+          project_id,
+          codes_df %>%
+            dplyr::mutate(
+              code_id = written_code_id
+            ),
+          user_id
+        )
+      },
+      error = function(e) {
+        warning("Logging failed: ", e$message)
+      }
     )
-  } else {
-    warning("code not added")
   }
 }
 
