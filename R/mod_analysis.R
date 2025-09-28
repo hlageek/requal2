@@ -18,6 +18,11 @@ mod_analysis_ui <- function(id) {
         icon = "filter"
       ),
       mod_rql_button_ui(
+        ns("sort_ui"),
+        label = "Sort segments",
+        icon = "sort"
+      ),
+      mod_rql_button_ui(
         ns("download_ui"),
         label = "Download segments",
         icon = "download"
@@ -31,13 +36,6 @@ mod_analysis_ui <- function(id) {
           style = "padding-right: 50px"
         )
     )
-    # ###########
-    #   column(
-    #     width = 4,
-
-    #   )
-    #   uiOutput(ns("download"))
-    # )
   )
 }
 
@@ -101,6 +99,45 @@ mod_analysis_server <- function(id, glob) {
       ),
       glob
     )
+
+    #--- Sort UI --------------
+    mod_rql_button_server(
+      id = "sort_ui",
+      custom_title = "Sort segments",
+      custom_tagList = tagList(
+        rql_picker_UI(
+          ns("sort_by"),
+          label = "Sort by",
+          choices = list(
+            "Document name" = "doc_name",
+            "Code name" = "code_name",
+            "Segment start position" = "segment_start",
+            "Segment ID (recency)" = "segment_id"
+          ),
+          multiple = FALSE
+        ),
+        rql_picker_UI(
+          ns("sort_order"),
+          label = "Sort order",
+          choices = list(
+            "Ascending (A-Z, 0-9)" = "asc",
+            "Descending (Z-A, 9-0)" = "desc"
+          ),
+          multiple = FALSE
+        ),
+        checkboxInput(
+          ns("group_by_document"),
+          label = "Group by document first",
+          value = TRUE
+        ),
+        tags$small(
+          class = "text-muted",
+          "When grouping by document, sorting applies within each document group."
+        )
+      ),
+      glob
+    )
+
     # Download UI ----
     mod_rql_button_server(
       id = "download_ui",
@@ -160,6 +197,20 @@ mod_analysis_server <- function(id, glob) {
       )
     })
 
+    # Set default sort options
+    observe({
+      shinyWidgets::updatePickerInput(
+        session = session,
+        "sort_by",
+        selected = "doc_name"
+      )
+      shinyWidgets::updatePickerInput(
+        session = session,
+        "sort_order",
+        selected = "asc"
+      )
+    })
+
     # Segments to display and filter ----
     observeEvent(
       c(
@@ -190,7 +241,7 @@ mod_analysis_server <- function(id, glob) {
               dplyr::filter(user_id == glob$user$user_id)
           }
 
-          loc$segments_df <- loc$temp_df %>%
+          loc$segments_df_unsorted <- loc$temp_df %>%
             dplyr::left_join(glob$codebook, by = "code_id") %>%
             dplyr::left_join(
               tibble::enframe(
@@ -201,7 +252,68 @@ mod_analysis_server <- function(id, glob) {
               by = "doc_id"
             )
         } else {
-          loc$segments_df <- as.data.frame(NULL)
+          loc$segments_df_unsorted <- as.data.frame(NULL)
+        }
+      }
+    )
+
+    # Apply sorting ----
+    observeEvent(
+      c(
+        loc$segments_df_unsorted,
+        input$sort_by,
+        input$sort_order,
+        input$group_by_document
+      ),
+      {
+        if (
+          is.null(loc$segments_df_unsorted) ||
+            nrow(loc$segments_df_unsorted) == 0
+        ) {
+          loc$segments_df <- loc$segments_df_unsorted
+          return()
+        }
+
+        # Get sort parameters with defaults
+        sort_by <- if (is.null(input$sort_by)) "doc_name" else input$sort_by
+        sort_order <- if (is.null(input$sort_order)) "asc" else input$sort_order
+        group_by_doc <- if (is.null(input$group_by_document)) {
+          TRUE
+        } else {
+          input$group_by_document
+        }
+
+        # Apply sorting
+        if (group_by_doc) {
+          # Group by document first, then sort within groups
+          if (sort_order == "desc") {
+            loc$segments_df <- loc$segments_df_unsorted %>%
+              dplyr::group_by(doc_name) %>%
+              dplyr::arrange(
+                doc_name,
+                dplyr::desc(!!dplyr::sym(sort_by)),
+                .by_group = TRUE
+              ) %>%
+              dplyr::ungroup()
+          } else {
+            loc$segments_df <- loc$segments_df_unsorted %>%
+              dplyr::group_by(doc_name) %>%
+              dplyr::arrange(
+                doc_name,
+                !!dplyr::sym(sort_by),
+                .by_group = TRUE
+              ) %>%
+              dplyr::ungroup()
+          }
+        } else {
+          # Sort globally without grouping
+          if (sort_order == "desc") {
+            loc$segments_df <- loc$segments_df_unsorted %>%
+              dplyr::arrange(dplyr::desc(!!dplyr::sym(sort_by)))
+          } else {
+            loc$segments_df <- loc$segments_df_unsorted %>%
+              dplyr::arrange(!!dplyr::sym(sort_by))
+          }
         }
       }
     )
