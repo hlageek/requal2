@@ -245,11 +245,7 @@ create_new_code_on_recode <- function(
   codes_input_df <- data.frame(
     code_name = code_name,
     code_description = code_description,
-    code_color = paste0(
-      "rgb(",
-      paste(as.vector(grDevices::col2rgb(code_color)), collapse = ", "),
-      ")"
-    ),
+    code_color = code_color,
     project_id = as.integer(glob$active_project),
     user_id = as.integer(glob$user$user_id),
     stringsAsFactors = FALSE
