@@ -50,7 +50,7 @@ recode_block <- function(ns, code_choices) {
     style = "margin-top: 10px; text-align: left;",
     radioButtons(
       ns("recode_action"),
-      "Recode action:",
+      "Recode segment action:",
       choices = list(
         "Alter" = "alter",
         "Add" = "add",
@@ -155,7 +155,7 @@ mod_analysis_extra_css <- function() {
           }
           .quoted_segment {
             flex: 1;
-            padding: 10px;
+            padding: 20px;
             min-width: 40vw;
             max-width: 60vw;
             max-height: 80vh;
@@ -163,6 +163,8 @@ mod_analysis_extra_css <- function() {
             text-align: left;
             overflow-y: scroll;
             scrollbar-width: thin;
+            border-radius: 5px;
+            margin: -10px;
           }
           .segment_outline {
             white-space: pre-wrap;
