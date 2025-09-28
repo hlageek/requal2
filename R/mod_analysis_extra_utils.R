@@ -96,7 +96,7 @@ recode_block <- function(ns, code_choices) {
         colourpicker::colourInput(
           ns("new_code_color"),
           "Code color:",
-          value = "rgb(255,255,0)",
+          value = "#ffff00",
           showColour = "background"
         )
       )
@@ -245,7 +245,11 @@ create_new_code_on_recode <- function(
   codes_input_df <- data.frame(
     code_name = code_name,
     code_description = code_description,
-    code_color = code_color,
+    code_color = paste0(
+      "rgb(",
+      paste(as.vector(grDevices::col2rgb(code_color)), collapse = ", "),
+      ")"
+    ),
     project_id = as.integer(glob$active_project),
     user_id = as.integer(glob$user$user_id),
     stringsAsFactors = FALSE
