@@ -147,9 +147,7 @@ mod_analysis_extra_css <- function() {
             max-width: 1000px;
           }
           .info_box {
-            width: 300px;
-            min-width: 20vw;
-            max-width: 40vw;
+            width: 100%;
             padding-left: 30px;
             scrollbar-width: thin;
           }

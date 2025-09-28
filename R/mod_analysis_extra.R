@@ -162,7 +162,8 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
               hidden_tags = tagList(
                 adjust_block(ns),
                 hr(),
-                recode_block(ns, loc$code_choices)
+                recode_block(ns, loc$code_choices),
+                hr()
               )
             )
           ),
