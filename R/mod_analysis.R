@@ -138,7 +138,7 @@ mod_analysis_server <- function(id, glob) {
         session = session,
         "category_filter",
         choices = glob$category,
-        selected = glob$category
+        selected = ""
       )
     })
 
