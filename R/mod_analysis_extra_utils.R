@@ -54,7 +54,8 @@ recode_block <- function(ns, code_choices) {
       choices = list(
         "Alter" = "alter",
         "Add" = "add",
-        "Remove" = "remove"
+        "Strip" = "strip"
+        # TODO: "Split" = "split"
       ),
       selected = character(0),
       inline = TRUE
@@ -63,37 +64,40 @@ recode_block <- function(ns, code_choices) {
     conditionalPanel(
       condition = "input.recode_action == 'alter' || input.recode_action == 'add'",
       ns = ns,
-      wellPanel(
-        checkboxInput(ns("create_new_code"), "Create new code", value = FALSE),
-        conditionalPanel(
-          condition = "!input.create_new_code",
-          ns = ns,
-          selectInput(
-            ns("recode_select"),
-            "Select code:",
-            choices = c("", code_choices),
-            selected = ""
-          )
+
+      # Select existing code
+      conditionalPanel(
+        condition = "!input.create_new_code",
+        ns = ns,
+        selectInput(
+          ns("recode_select"),
+          "Select code:",
+          choices = c("", code_choices),
+          selected = ""
+        )
+      ),
+      # Checkbox to toggle between selecting and creating a new code
+      checkboxInput(ns("create_new_code"), "Create new code", value = FALSE),
+      # Create new code inputs
+      conditionalPanel(
+        condition = "input.create_new_code",
+        ns = ns,
+        textInput(
+          ns("new_code_name"),
+          "Code name:",
+          placeholder = "Enter code name"
         ),
-        conditionalPanel(
-          condition = "input.create_new_code",
-          ns = ns,
-          textInput(
-            ns("new_code_name"),
-            "Code name:",
-            placeholder = "Enter code name"
-          ),
-          textInput(
-            ns("new_code_description"),
-            "Code description:",
-            placeholder = "Enter description (optional)"
-          ),
-          colourpicker::colourInput(
-            ns("new_code_color"),
-            "Code color:",
-            value = "#3498db",
-            showColour = "background"
-          )
+        textAreaInput(
+          ns("new_code_description"),
+          "Code description:",
+          placeholder = "Enter description (optional)",
+          rows = 1
+        ),
+        colourpicker::colourInput(
+          ns("new_code_color"),
+          "Code color:",
+          value = "rgb(255,255,0)",
+          showColour = "background"
         )
       )
     ),
@@ -106,7 +110,7 @@ recode_block <- function(ns, code_choices) {
         p(
           style = "margin: 0; color: #856404;",
           HTML(
-            "<strong>Warning:</strong> Stripping a code from a segment will delete the segment."
+            "<strong>Warning:</strong> Stripping code from segment will delete the segment."
           )
         )
       )

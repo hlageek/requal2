@@ -256,7 +256,7 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
         "strip" = "Strip code"
       )
 
-      button_class <- if (input$recode_action == "remove") {
+      button_class <- if (input$recode_action == "strip") {
         "btn-danger"
       } else {
         "btn-warning"
