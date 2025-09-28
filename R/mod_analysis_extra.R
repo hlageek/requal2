@@ -81,7 +81,9 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
 
     .get_segment_df_on_recode <- function() {
       dplyr::tbl(glob$pool, "segments") %>%
-        dplyr::filter(.data$segment_id == !!as.integer(current_segment_id)) %>%
+        dplyr::filter(
+          .data$segment_id == !!as.integer(loc$current_segment_id)
+        ) %>%
         dplyr::inner_join(
           dplyr::tbl(glob$pool, "codes") %>%
             dplyr::select(code_id, code_name, code_description, code_color),
@@ -187,7 +189,7 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
     observeEvent(segment_id(), {
       req(segment_id())
       # Assign the ID value from the reactive value
-      current_segment_id <- segment_id()
+      loc$current_segment_id <- segment_id()
 
       # Reset toolbox state for new segment
       # Otherwise, this is toggled by the hide/reveal UI module

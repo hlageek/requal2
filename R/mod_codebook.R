@@ -191,6 +191,7 @@ mod_codebook_server <- function(id, glob) {
           glob$active_project,
           glob$user
         )
+        glob$codebook_observer <- 0 # start listening to codebook changes from other tabs
         output$codes_ui <- renderUI({
           render_codes(
             active_project = glob$active_project,
