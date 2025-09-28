@@ -1,4 +1,4 @@
-# Functions to move to R/mod_segment_more_helpers.R
+# UI helpers ------
 segment_info_block <- function(
   ns,
   segment_df,
@@ -99,14 +99,14 @@ recode_block <- function(ns, code_choices) {
     ),
 
     conditionalPanel(
-      condition = "input.recode_action == 'remove'",
+      condition = "input.recode_action == 'strip'",
       ns = ns,
       div(
         style = "margin-top: 10px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;",
         p(
           style = "margin: 0; color: #856404;",
           HTML(
-            "<strong>Warning:</strong> This will permanently delete the segment."
+            "<strong>Warning:</strong> Stripping a code from a segment will delete the segment."
           )
         )
       )
@@ -134,7 +134,45 @@ adjust_block <- function(ns) {
   )
 }
 
-# Functions to move to R/mod_segment_more_business.R
+mod_analysis_extra_css <- function() {
+  "
+          .segment_container {
+            display: flex;
+            flex-direction: row-reverse;
+            width: 100%;
+            max-width: 1000px;
+          }
+          .info_box {
+            width: 300px;
+            min-width: 20vw;
+            max-width: 40vw;
+            padding-left: 30px;
+            scrollbar-width: thin;
+          }
+          .quoted_segment {
+            flex: 1;
+            padding: 10px;
+            min-width: 40vw;
+            max-width: 60vw;
+            max-height: 80vh;
+            background-color: white;
+            text-align: left;
+            overflow-y: scroll;
+            scrollbar-width: thin;
+          }
+          .segment_outline {
+            white-space: pre-wrap;
+            background-color: #FFF8DC;
+            padding: 10px;
+            border-radius: 5px;
+            box-sizing: border-box;
+            outline: dashed 2px #FF6347;
+          }
+        "
+}
+
+
+# check permissions for recode actions --------
 check_permissions <- function(
   action,
   segment_df,
@@ -176,6 +214,7 @@ check_permissions <- function(
   return(list(valid = TRUE, message = NULL))
 }
 
+# Validate if new code has a name and is unique ------
 validate_new_code <- function(code_name, existing_codes, current_code) {
   if (code_name == "") {
     return(list(valid = FALSE, message = "Please enter a code name"))
@@ -192,7 +231,13 @@ validate_new_code <- function(code_name, existing_codes, current_code) {
   return(list(valid = TRUE, message = NULL))
 }
 
-create_new_code <- function(code_name, code_description, code_color, glob) {
+# Create new code from recode module ----
+create_new_code_on_recode <- function(
+  code_name,
+  code_description,
+  code_color,
+  glob
+) {
   codes_input_df <- data.frame(
     code_name = code_name,
     code_description = code_description,
@@ -220,7 +265,7 @@ create_new_code <- function(code_name, code_description, code_color, glob) {
   return(new_code_id)
 }
 
-check_code_overlaps <- function(target_code_id, segment_df, glob) {
+check_code_overlaps_on_recode <- function(target_code_id, segment_df, glob) {
   coded_segments <- dplyr::tbl(glob$pool, "segments") %>%
     dplyr::filter(
       .data$project_id == !!as.integer(glob$active_project),
@@ -239,6 +284,7 @@ check_code_overlaps <- function(target_code_id, segment_df, glob) {
     ) %>%
     dplyr::collect()
 
+  # use function from document_code_utils
   overlap_result <- check_overlap(
     coded_segments,
     segment_df$segment_start,
@@ -247,6 +293,9 @@ check_code_overlaps <- function(target_code_id, segment_df, glob) {
   list(has_overlap = nrow(overlap_result) > 0, overlap_data = overlap_result)
 }
 
+# Update information in segments table ----
+# this is the most straightforward recode action
+# but cannot be used for situations with overlapping segments
 execute_direct_update <- function(
   target_code_id,
   segment_id,
@@ -278,6 +327,8 @@ execute_direct_update <- function(
   )
 }
 
+# A wrapper around write_segment_db ----
+# with some error handling and message display
 execute_write_segment <- function(
   target_code_id,
   segment_df,

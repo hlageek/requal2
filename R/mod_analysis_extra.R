@@ -32,9 +32,12 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
       timestamp = NULL
     )
 
-    # Locally scoped helper functions - defined early so they can be called later
+    # Start of locally scoped helper function definitions --------
+
+    # Returns either an ID of a new code or the ID of the selected code
     .get_target_code_id <- function() {
       if (input$create_new_code) {
+        # Check for duplicate or missing code name
         validation <- validate_new_code(
           input$new_code_name,
           loc$codes_df,
@@ -47,7 +50,7 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
 
         tryCatch(
           {
-            new_code_id <- create_new_code(
+            new_code_id <- create_new_code_on_recode(
               input$new_code_name,
               input$new_code_description,
               input$new_code_color,
@@ -69,22 +72,6 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
       }
     }
 
-    .get_code_id_from_inputs <- function() {
-      if (input$create_new_code) {
-        # Since we just created the code, we can get it by name
-        dplyr::tbl(glob$pool, "codes") %>%
-          dplyr::filter(
-            .data$code_name == !!input$new_code_name,
-            .data$project_id == !!as.integer(glob$active_project),
-            .data$user_id == !!glob$user$user_id
-          ) %>%
-          dplyr::pull(code_id) %>%
-          max()
-      } else {
-        input$recode_select
-      }
-    }
-
     .update_return_values <- function(action, segment_id, code_id) {
       return_values$action <- action
       return_values$segment_id <- segment_id
@@ -92,18 +79,8 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
       return_values$timestamp <- Sys.time()
     }
 
-    # Load segment data when segment_id changes
-    observeEvent(segment_id(), {
-      req(segment_id())
-      current_segment_id <- segment_id()
-
-      # Reset toolbox state for new segment
-      if (!is.null(loc$toolbox)) {
-        loc$toolbox(FALSE)
-      }
-
-      # Load segment data with proper bang-bang operators
-      loc$segment_df <- dplyr::tbl(glob$pool, "segments") %>%
+    .get_segment_df_on_recode <- function() {
+      dplyr::tbl(glob$pool, "segments") %>%
         dplyr::filter(.data$segment_id == !!as.integer(current_segment_id)) %>%
         dplyr::inner_join(
           dplyr::tbl(glob$pool, "codes") %>%
@@ -112,9 +89,24 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
         ) %>%
         dplyr::inner_join(dplyr::tbl(glob$pool, "users"), by = "user_id") %>%
         dplyr::collect()
+    }
 
-      # Ensure project filtering for all subsequent queries
-      loc$segment_categories <- dplyr::tbl(
+    .get_codes_df_on_recode <- function() {
+      dplyr::tbl(glob$pool, "codes") %>%
+        dplyr::filter(.data$project_id == !!as.integer(glob$active_project)) %>%
+        dplyr::filter(.data$code_id != !!loc$segment_df$code_id) %>%
+        dplyr::select(
+          code_id,
+          code_name,
+          code_description,
+          code_color,
+          user_id
+        ) %>%
+        dplyr::collect()
+    }
+
+    .get_categories_df_on_recode <- function() {
+      dplyr::tbl(
         glob$pool,
         "categories_codes_map"
       ) %>%
@@ -128,78 +120,19 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
           by = "category_id"
         ) %>%
         dplyr::collect()
+    }
 
-      loc$segment_documents <- dplyr::tbl(glob$pool, "documents") %>%
+    .get_documents_df_on_recode <- function() {
+      dplyr::tbl(glob$pool, "documents") %>%
         dplyr::filter(.data$project_id == !!as.integer(glob$active_project)) %>%
         dplyr::filter(.data$doc_id %in% !!loc$segment_df$doc_id) %>%
         dplyr::collect()
+    }
 
-      # Get available codes with proper project filtering
-      loc$codes_df <- dplyr::tbl(glob$pool, "codes") %>%
-        dplyr::filter(.data$project_id == !!as.integer(glob$active_project)) %>%
-        dplyr::filter(.data$code_id != !!loc$segment_df$code_id) %>%
-        dplyr::select(
-          code_id,
-          code_name,
-          code_description,
-          code_color,
-          user_id
-        ) %>%
-        dplyr::collect()
-
-      # Filter by permission to view other codes
-      if (!is.null(glob$user$data) && glob$user$data$codebook_other_view != 1) {
-        loc$codes_df <- loc$codes_df %>%
-          dplyr::filter(user_id == !!glob$user$user_id)
-      }
-
-      # Create choice list for select input
-      loc$code_choices <- stats::setNames(
-        loc$codes_df$code_id,
-        loc$codes_df$code_name
-      )
-    })
-
-    # Render main UI
-    output$segment_details <- renderUI({
-      req(loc$segment_df)
-
+    .render_segment_details_ui <- function() {
       tagList(
         tags$style(HTML(
-          "
-          .segment_container {
-            display: flex;
-            flex-direction: row-reverse;
-            width: 100%;
-            max-width: 1000px;
-          }
-          .info_box {
-            width: 300px;
-            min-width: 20vw;
-            max-width: 40vw;
-            padding-left: 30px;
-            scrollbar-width: thin;
-          }
-          .quoted_segment {
-            flex: 1;
-            padding: 10px;
-            min-width: 40vw;
-            max-width: 60vw;
-            max-height: 80vh;
-            background-color: white;
-            text-align: left;
-            overflow-y: scroll;
-            scrollbar-width: thin;
-          }
-          .segment_outline {
-            white-space: pre-wrap;
-            background-color: #FFF8DC;
-            padding: 10px;
-            border-radius: 5px;
-            box-sizing: border-box;
-            outline: dashed 2px #FF6347;
-          }
-        "
+          mod_analysis_extra_css()
         )),
         div(
           class = "segment_container",
@@ -246,9 +179,54 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
           ))
         )
       )
+    }
+
+    # End of locally scoped helper function definitions --------
+
+    # Load segment data when segment_id changes -------
+    observeEvent(segment_id(), {
+      req(segment_id())
+      # Assign the ID value from the reactive value
+      current_segment_id <- segment_id()
+
+      # Reset toolbox state for new segment
+      # Otherwise, this is toggled by the hide/reveal UI module
+      if (!is.null(loc$toolbox)) {
+        loc$toolbox(FALSE)
+      }
+
+      # Load segment data
+      # It seems rlang bang-bang operators are needed to make this work in deployment
+      loc$segment_df <- .get_segment_df_on_recode()
+
+      # Query DB for categories, documents, codes
+      # so that we have more details about the segment
+      loc$segment_categories <- .get_categories_df_on_recode()
+      loc$segment_documents <- .get_documents_df_on_recode()
+      loc$codes_df <- .get_codes_df_on_recode()
+
+      # Filter by permission to view other codes
+      if (!is.null(glob$user$data) && glob$user$data$codebook_other_view != 1) {
+        loc$codes_df <- loc$codes_df %>%
+          dplyr::filter(user_id == !!glob$user$user_id)
+      }
+
+      # Create choice list for select input
+      loc$code_choices <- stats::setNames(
+        loc$codes_df$code_id,
+        loc$codes_df$code_name
+      )
     })
 
-    # Toggle quoted segment visibility
+    # Render main UI of the module -------
+    # populate with data collected when segment_id changes
+    output$segment_details <- renderUI({
+      req(loc$segment_df)
+      .render_segment_details_ui()
+    })
+
+    # Toggle quoted segment visibility -----
+    # uses the same reactive value as the hide/reveal toggle module
     observeEvent(loc$toolbox(), {
       if (loc$toolbox()) {
         shinyjs::show("quoted_segment")
@@ -257,23 +235,23 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
       }
     })
 
-    # Close button handler
+    # Close button handler -----
     observeEvent(input$close_btn, {
       loc$toolbox(FALSE)
       removeUI(paste0(".", parent_class), multiple = TRUE)
     })
 
-    # Dynamic button UI for recode actions
+    # Dynamic button UI for recode actions -----
     output$recode_button_ui <- renderUI({
       req(input$recode_action)
       req(isTruthy(input$recode_action))
 
       button_text <- switch(
         input$recode_action,
-        "alter" = "Alter Code",
-        "add" = "Add Code",
-        "remove" = "Delete Segment",
-        ""
+        "alter" = "Alter code",
+        "add" = "Add code",
+        "split" = "Split code",
+        "strip" = "Strip code"
       )
 
       button_class <- if (input$recode_action == "remove") {
@@ -285,7 +263,7 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
       actionButton(ns("recode_btn"), button_text, class = button_class)
     })
 
-    # Main recode button handler
+    # Main recode button handler ----
     observeEvent(input$recode_btn, {
       req(loc$segment_df)
 
@@ -305,7 +283,9 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
         return()
       }
 
-      if (action == "remove") {
+      # Strip code logic ------
+      if (action == "strip") {
+        # Stripping a code from segment is the same as deleting it
         tryCatch(
           {
             delete_segment_codes_db(
@@ -315,46 +295,52 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
               doc_id = loc$segment_df$doc_id,
               segment_id = loc$segment_df$segment_id
             )
-            rql_message(paste0("Deleted segment ", segment_id))
+            rql_message(paste0("Stripped code from segment ", segment_id))
             .update_return_values(
-              "remove",
+              "strip",
               loc$segment_df$segment_id,
               loc$segment_df$code_id
             )
           },
           error = function(e) {
-            rql_message(paste0("Failed to delete segment: ", e$message))
+            rql_message(paste0(
+              "Failed to strip code from segment: ",
+              e$message
+            ))
           }
         )
         return()
       }
 
-      # Get target code ID
-      target_code_id <- .get_target_code_id()
-      if (is.null(target_code_id)) {
+      # Alter, Add, Split code logic ------
+      # Get target code ID ------
+      # if we are recoding, we need to know what is the new code ID
+      loc$target_code_id <- .get_target_code_id()
+      if (is.null(loc$target_code_id)) {
         return()
       }
 
-      # Check for overlaps and execute action
+      # Check for overlaps
+      # if we find overlaps, we need to prompt user because the recode action will be more complex
       tryCatch(
         {
-          overlap_info <- check_code_overlaps(
-            target_code_id,
+          overlap_info <- check_code_overlaps_on_recode(
+            loc$target_code_id,
             loc$segment_df,
             glob
           )
-
+          # Alter code ------
           if (action == "alter") {
             if (overlap_info$has_overlap) {
               showModal(modalDialog(
                 title = "Overlap Detected",
                 p(
-                  "This code already exists on overlapping text in this document."
+                  "This code already exists in the range of the current segment."
                 ),
                 p(paste0(
                   "The current segment (",
                   segment_id,
-                  ") will be removed and the existing overlapping coded segment will be adjusted to cover this text range."
+                  ") will be removed and the overlapping coded segment will be adjusted to cover the current segment's text range."
                 )),
                 footer = tagList(
                   actionButton(
@@ -366,9 +352,10 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
                 )
               ))
             } else {
+              # If no overlap, just write to DB
               if (
                 execute_direct_update(
-                  target_code_id,
+                  loc$target_code_id,
                   segment_id,
                   "Altered",
                   glob$pool
@@ -377,18 +364,19 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
                 .update_return_values(
                   "alter",
                   loc$segment_df$segment_id,
-                  target_code_id
+                  loc$target_code_id
                 )
               }
             }
+            # Add code ------
           } else if (action == "add") {
             if (overlap_info$has_overlap) {
               showModal(modalDialog(
                 title = "Overlap Detected",
                 p(
-                  "This code already exists on overlapping text in this document."
+                  "This code already exists in the range of the current segment."
                 ),
-                p("Proceeding will merge or extend the existing segments."),
+                p("Proceeding will merge or extend the pre-existing segments."),
                 footer = tagList(
                   actionButton(
                     ns("confirm_add"),
@@ -399,9 +387,10 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
                 )
               ))
             } else {
+              # If no overlap, just write to DB
               if (
                 execute_write_segment(
-                  target_code_id,
+                  loc$target_code_id,
                   loc$segment_df,
                   "Added code to",
                   glob
@@ -410,11 +399,12 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
                 .update_return_values(
                   "add",
                   loc$segment_df$segment_id,
-                  target_code_id
+                  loc$target_code_id
                 )
               }
             }
           }
+          # TODO: Split code logic with else if (action == "split")
         },
         error = function(e) {
           rql_message(paste0("Database error: ", e$message))
@@ -422,10 +412,10 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
       )
     })
 
-    # Modal confirmation handlers
+    # Modal confirmation handlers ------
+    # here we handle the more complicated cases upon user confirmation
     observeEvent(input$confirm_alter, {
       removeModal()
-      target_code_id <- .get_code_id_from_inputs()
 
       # For ALTER with overlap: remove current segment, then write new segment to extend overlapping
       tryCatch(
@@ -442,7 +432,7 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
           # Then write the target code segment (will extend/merge with existing overlapping segment)
           if (
             execute_write_segment(
-              target_code_id,
+              loc$target_code_id,
               loc$segment_df,
               "Altered",
               glob
@@ -451,7 +441,7 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
             .update_return_values(
               "alter",
               loc$segment_df$segment_id,
-              target_code_id
+              loc$target_code_id
             )
           }
         },
@@ -463,20 +453,23 @@ mod_analysis_extra_server <- function(id, glob, segment_id, parent_class) {
 
     observeEvent(input$confirm_add, {
       removeModal()
-      target_code_id <- .get_code_id_from_inputs()
       if (
         execute_write_segment(
-          target_code_id,
+          loc$target_code_id,
           loc$segment_df,
           "Added code to",
           glob
         )
       ) {
-        .update_return_values("add", loc$segment_df$segment_id, target_code_id)
+        .update_return_values(
+          "add",
+          loc$segment_df$segment_id,
+          loc$target_code_id
+        )
       }
     })
 
-    # Context window adjustment
+    # Context window adjustment -----
     observeEvent(input$adjust_context_window, {
       req(loc$segment_df)
 
