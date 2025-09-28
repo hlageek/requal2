@@ -542,26 +542,24 @@ add_cases_record <- function(pool, project_id, case_df, user_id) {
 add_codes_record <- function(pool, project_id, codes_df, user_id) {
   db_postgres <- pool::dbGetInfo(pool)$pooledObjectClass != "SQLiteConnection"
   written_code_id <- NULL
-
+  browser()
   tryCatch(
     {
-      pool::poolWithTransaction(pool, function(conn) {
+      pool::poolWithTransaction(pool, function(con) {
+        DBI::dbWriteTable(
+          con,
+          "codes",
+          codes_df,
+          append = TRUE,
+          row.names = FALSE
+        )
         if (db_postgres) {
-          query <- glue::glue_sql(
-            "INSERT INTO codes (project_id, code_name, user_id) VALUES ({project_id}, {codes_df$code_name}, {user_id}) RETURNING code_id",
-            .con = conn
-          )
-          written_code_id <<- DBI::dbGetQuery(conn, query)$code_id
+          # Query the last inserted ID from the sequence
+          last_id_query <- "SELECT currval(pg_get_serial_sequence('codes', 'code_id'))"
+          written_code_id <<- pool::dbGetQuery(con, last_id_query)$currval
         } else {
-          DBI::dbWriteTable(
-            conn,
-            "codes",
-            codes_df,
-            append = TRUE,
-            row.names = FALSE
-          )
           written_code_id <<- DBI::dbGetQuery(
-            conn,
+            con,
             "SELECT last_insert_rowid() AS code_id"
           )$code_id
         }
