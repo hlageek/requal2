@@ -542,7 +542,6 @@ add_cases_record <- function(pool, project_id, case_df, user_id) {
 add_codes_record <- function(pool, project_id, codes_df, user_id) {
   db_postgres <- pool::dbGetInfo(pool)$pooledObjectClass != "SQLiteConnection"
   written_code_id <- NULL
-  browser()
   tryCatch(
     {
       pool::poolWithTransaction(pool, function(con) {

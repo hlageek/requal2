@@ -1,6 +1,6 @@
 Package: requal
 Title: Shiny Application for Computer-Assisted Qualitative Data Analysis
-Version: 1.2.5.9002
+Version: 1.2.5.9003
 Authors@R:
     c(
      person(given = "Radim",
@@ -27,7 +27,7 @@ Authors@R:
             role = "fnd",
             comment = "TL05000054")
     )
-Description: PKG_DESC.
+Description: Requal is a free and open-source CAQDAS application engineered as an interface for annotating text and qualitative data. Its primary objective is to enhance reproducibility in qualitative research by promoting transparency, openness, reflexivity, and collaboration. The application operates cross-platform in web browsers and is built with the Shiny framework for the R language environment.
 License: MIT + file LICENSE
 Imports:
     colourpicker,

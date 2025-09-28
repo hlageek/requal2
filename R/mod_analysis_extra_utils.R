@@ -242,11 +242,6 @@ create_new_code_on_recode <- function(
   code_color,
   glob
 ) {
-  rql_message(paste0(
-    "rgb(",
-    paste(as.vector(grDevices::col2rgb(code_color)), collapse = ", "),
-    ")"
-  ))
   codes_input_df <- data.frame(
     code_name = code_name,
     code_description = code_description,
