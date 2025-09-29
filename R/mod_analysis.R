@@ -106,40 +106,74 @@ mod_analysis_server <- function(id, glob) {
       custom_title = "Sort segments",
       custom_tagList = tagList(
         selectInput(
-          ns("sort_by"),
-          label = "Sort by",
+          ns("sort_segments_by"),
+          label = "Sort segments by",
           choices = list(
-            "Document" = "document",
-            "Code" = "code",
-            "Segment" = "segment"
-          ),
-          selected = "segment"
-        ),
-        selectInput(
-          ns("sort_principle"),
-          label = "Sort principle",
-          choices = list(
-            "Recency (newest first)" = "recency_desc",
-            "Recency (oldest first)" = "recency_asc",
-            "Alphanumeric (A-Z)" = "alpha_asc",
-            "Alphanumeric (Z-A)" = "alpha_desc"
+            "Most recent first" = "recency_desc",
+            "Oldest first" = "recency_asc",
+            "Alphabetically (A-Z)" = "alpha_asc",
+            "Alphabetically (Z-A)" = "alpha_desc",
+            "Document position (start to end)" = "position_asc",
+            "Document position (end to start)" = "position_desc",
+            "Length (shortest first)" = "length_asc",
+            "Length (longest first)" = "length_desc"
           ),
           selected = "recency_desc"
         ),
+        selectInput(
+          ns("group_by"),
+          label = "Group by",
+          choices = list(
+            "None" = "none",
+            "Documents" = "documents",
+            "Codes" = "codes"
+          ),
+          selected = "none"
+        ),
         conditionalPanel(
-          condition = "input.sort_by != 'document'",
+          condition = "input.group_by != 'none'",
+          ns = ns,
+          selectInput(
+            ns("sort_groups_by"),
+            label = "Sort groups by",
+            choices = list(
+              "Most recent first" = "recency_desc",
+              "Oldest first" = "recency_asc",
+              "Alphabetically (A-Z)" = "alpha_asc",
+              "Alphabetically (Z-A)" = "alpha_desc"
+            ),
+            selected = "recency_desc"
+          )
+        ),
+        conditionalPanel(
+          condition = "input.group_by != 'none'",
           ns = ns,
           checkboxInput(
-            ns("group_by_document"),
-            label = "Group by document first",
-            value = TRUE
+            ns("enable_subgroup_sort"),
+            label = textOutput(ns("subgroup_label")),
+            value = FALSE
+          )
+        ),
+        conditionalPanel(
+          condition = "input.group_by != 'none' && input.enable_subgroup_sort",
+          ns = ns,
+          selectInput(
+            ns("sort_subgroups_by"),
+            label = "Sort subgroups by",
+            choices = list(
+              "Most recent first" = "recency_desc",
+              "Oldest first" = "recency_asc",
+              "Alphabetically (A-Z)" = "alpha_asc",
+              "Alphabetically (Z-A)" = "alpha_desc"
+            ),
+            selected = "alpha_asc"
           )
         ),
         tags$small(
           class = "text-muted",
           HTML(
-            "Alphanumeric uses names/text, Recency uses creation IDs.<br/>
-               When grouping by document, segments are automatically sorted by position within each document."
+            "Segments are always the primary focus. Groups organize segments by document or code.<br/>
+               Subgroups provide additional organization within each group."
           )
         )
       ),
@@ -205,61 +239,20 @@ mod_analysis_server <- function(id, glob) {
       )
     })
 
-    # Set default sort options
-    observeEvent(
-      once = TRUE,
-      ignoreNULL = FALSE,
-      {
-        TRUE
-      },
-      {
-        # Defaults are already set in selectInput, but we can update if needed
+    # Dynamic subgroup label
+    output$subgroup_label <- renderText({
+      if (is.null(input$group_by) || input$group_by == "none") {
+        return("")
       }
-    )
 
-    # Update sort principle options based on what field is being sorted
-    observeEvent(input$sort_by, {
-      req(input$sort_by)
-
-      if (input$sort_by == "segment") {
-        # For segment sorting, add segment position options
-        choices <- list(
-          "Recency (newest first)" = "recency_desc",
-          "Recency (oldest first)" = "recency_asc",
-          "Alphanumeric (A-Z)" = "alpha_asc",
-          "Alphanumeric (Z-A)" = "alpha_desc",
-          "Position (start to end)" = "position_asc",
-          "Position (end to start)" = "position_desc"
-        )
+      if (input$group_by == "documents") {
+        "Also sort codes within documents"
       } else {
-        # For document and code sorting, standard options
-        choices <- list(
-          "Recency (newest first)" = "recency_desc",
-          "Recency (oldest first)" = "recency_asc",
-          "Alphanumeric (A-Z)" = "alpha_asc",
-          "Alphanumeric (Z-A)" = "alpha_desc"
-        )
+        "Also sort documents within codes"
       }
-
-      # Preserve current selection if it's still valid
-      current_selection <- input$sort_principle
-      if (
-        is.null(current_selection) || !current_selection %in% unlist(choices)
-      ) {
-        current_selection <- if (input$sort_by == "segment") {
-          "recency_desc"
-        } else {
-          "alpha_asc"
-        }
-      }
-
-      updateSelectInput(
-        session = session,
-        "sort_principle",
-        choices = choices,
-        selected = current_selection
-      )
     })
+
+    # No need for complex conditional updates since we use standard selectInputs with fixed choices
 
     # Segments to display and filter ----
     observeEvent(
@@ -311,9 +304,11 @@ mod_analysis_server <- function(id, glob) {
     observeEvent(
       c(
         loc$segments_df_unsorted,
-        input$sort_by,
-        input$sort_principle,
-        input$group_by_document
+        input$sort_segments_by,
+        input$group_by,
+        input$sort_groups_by,
+        input$enable_subgroup_sort,
+        input$sort_subgroups_by
       ),
       {
         if (
@@ -325,103 +320,162 @@ mod_analysis_server <- function(id, glob) {
         }
 
         # Get sort parameters with defaults
-        sort_by <- if (is.null(input$sort_by)) "segment" else input$sort_by
-        sort_principle <- if (is.null(input$sort_principle)) {
+        segment_sort <- if (is.null(input$sort_segments_by)) {
           "recency_desc"
         } else {
-          input$sort_principle
+          input$sort_segments_by
         }
-        group_by_doc <- if (is.null(input$group_by_document)) {
-          TRUE
+        grouping <- if (is.null(input$group_by)) "none" else input$group_by
+        group_sort <- if (is.null(input$sort_groups_by)) {
+          "recency_desc"
         } else {
-          input$group_by_document
+          input$sort_groups_by
         }
-
-        # Determine actual sort field based on sort_by and sort_principle
-        if (sort_principle %in% c("position_asc", "position_desc")) {
-          # Position sorting: use segment_start
-          actual_sort_field <- "segment_start"
-        } else if (sort_principle %in% c("recency_asc", "recency_desc")) {
-          # Recency: use IDs
-          if (sort_by == "document") {
-            actual_sort_field <- "doc_id"
-          } else if (sort_by == "code") {
-            actual_sort_field <- "code_id"
-          } else {
-            # segment
-            actual_sort_field <- "segment_id"
-          }
+        enable_subgroup <- if (is.null(input$enable_subgroup_sort)) {
+          FALSE
         } else {
-          # Alphanumeric: use names/text with cleaning
-          if (sort_by == "document") {
-            # Clean document names
-            loc$segments_df_unsorted <- loc$segments_df_unsorted %>%
-              dplyr::mutate(
-                doc_name_clean = stringr::str_to_lower(trimws(doc_name))
-              )
-            actual_sort_field <- "doc_name_clean"
-          } else if (sort_by == "code") {
-            # Clean code names
-            loc$segments_df_unsorted <- loc$segments_df_unsorted %>%
-              dplyr::mutate(
-                code_name_clean = stringr::str_to_lower(trimws(code_name))
-              )
-            actual_sort_field <- "code_name_clean"
-          } else {
-            # segment
-            # Clean segment text for better sorting
-            loc$segments_df_unsorted <- loc$segments_df_unsorted %>%
-              dplyr::mutate(
-                segment_text_clean = stringr::str_sub(
-                  trimws(segment_text),
-                  1,
-                  100
-                ) %>%
-                  stringr::str_to_lower()
-              )
-            actual_sort_field <- "segment_text_clean"
-          }
+          input$enable_subgroup_sort
+        }
+        subgroup_sort <- if (is.null(input$sort_subgroups_by)) {
+          "alpha_asc"
+        } else {
+          input$sort_subgroups_by
         }
 
-        use_desc <- sort_principle %in%
-          c("recency_desc", "alpha_desc", "position_desc")
+        # Helper function to get sort field and direction
+        get_sort_details <- function(sort_principle, entity_type) {
+          use_desc <- sort_principle %in%
+            c("recency_desc", "alpha_desc", "position_desc", "length_desc")
 
-        # Apply sorting logic
-        if (sort_by == "document" || !group_by_doc) {
-          # No document grouping - sort globally
-          if (use_desc) {
+          if (sort_principle %in% c("position_asc", "position_desc")) {
+            return(list(field = "segment_start", desc = use_desc))
+          } else if (sort_principle %in% c("length_asc", "length_desc")) {
+            # Calculate segment length
+            loc$segments_df_unsorted <<- loc$segments_df_unsorted %>%
+              dplyr::mutate(segment_length = stringr::str_length(segment_text))
+            return(list(field = "segment_length", desc = use_desc))
+          } else if (sort_principle %in% c("recency_desc", "recency_asc")) {
+            if (entity_type == "segment") {
+              field <- "segment_id"
+            } else if (entity_type == "document") {
+              field <- "doc_id"
+            } else {
+              # code
+              field <- "code_id"
+            }
+          } else {
+            # alphabetical
+            if (entity_type == "segment") {
+              # Clean segment text
+              loc$segments_df_unsorted <<- loc$segments_df_unsorted %>%
+                dplyr::mutate(
+                  segment_text_clean = stringr::str_sub(
+                    trimws(segment_text),
+                    1,
+                    100
+                  ) %>%
+                    stringr::str_to_lower()
+                )
+              field <- "segment_text_clean"
+            } else if (entity_type == "document") {
+              # Clean document names
+              loc$segments_df_unsorted <<- loc$segments_df_unsorted %>%
+                dplyr::mutate(
+                  doc_name_clean = stringr::str_to_lower(trimws(doc_name))
+                )
+              field <- "doc_name_clean"
+            } else {
+              # code
+              # Clean code names
+              loc$segments_df_unsorted <<- loc$segments_df_unsorted %>%
+                dplyr::mutate(
+                  code_name_clean = stringr::str_to_lower(trimws(code_name))
+                )
+              field <- "code_name_clean"
+            }
+          }
+
+          return(list(field = field, desc = use_desc))
+        }
+
+        # Get segment sort details
+        segment_details <- get_sort_details(segment_sort, "segment")
+
+        if (grouping == "none") {
+          # Simple case: just sort segments
+          if (segment_details$desc) {
             loc$segments_df <- loc$segments_df_unsorted %>%
-              dplyr::arrange(dplyr::desc(!!dplyr::sym(actual_sort_field)))
+              dplyr::arrange(dplyr::desc(!!dplyr::sym(segment_details$field)))
           } else {
             loc$segments_df <- loc$segments_df_unsorted %>%
-              dplyr::arrange(!!dplyr::sym(actual_sort_field))
+              dplyr::arrange(!!dplyr::sym(segment_details$field))
           }
         } else {
-          # Group by document first, then apply sort within groups
-          # Document groups inherit the sorting principle (but always use position within docs)
-          doc_sort_field <- if (
-            sort_principle %in% c("recency_asc", "recency_desc")
-          ) {
-            "doc_id"
+          # Complex case: grouping is enabled
+
+          # Determine group and subgroup entity types
+          if (grouping == "documents") {
+            group_entity <- "document"
+            subgroup_entity <- "code"
           } else {
-            "doc_name_clean"
+            # codes
+            group_entity <- "code"
+            subgroup_entity <- "document"
           }
 
-          # When grouping by document, automatically add segment position as secondary sort
-          if (use_desc) {
+          # Get group sort details
+          group_details <- get_sort_details(group_sort, group_entity)
+
+          if (!enable_subgroup) {
+            # Two-level sorting: groups + segments
+            if (group_details$desc) {
+              group_expr <- rlang::expr(dplyr::desc(
+                !!dplyr::sym(group_details$field)
+              ))
+            } else {
+              group_expr <- rlang::expr(!!dplyr::sym(group_details$field))
+            }
+
+            if (segment_details$desc) {
+              segment_expr <- rlang::expr(dplyr::desc(
+                !!dplyr::sym(segment_details$field)
+              ))
+            } else {
+              segment_expr <- rlang::expr(!!dplyr::sym(segment_details$field))
+            }
+
             loc$segments_df <- loc$segments_df_unsorted %>%
-              dplyr::arrange(
-                dplyr::desc(!!dplyr::sym(doc_sort_field)),
-                dplyr::desc(!!dplyr::sym(actual_sort_field)),
-                segment_start
-              ) # Always ascending for natural document order
+              dplyr::arrange(!!group_expr, !!segment_expr)
           } else {
+            # Three-level sorting: groups + subgroups + segments
+            subgroup_details <- get_sort_details(subgroup_sort, subgroup_entity)
+
+            if (group_details$desc) {
+              group_expr <- rlang::expr(dplyr::desc(
+                !!dplyr::sym(group_details$field)
+              ))
+            } else {
+              group_expr <- rlang::expr(!!dplyr::sym(group_details$field))
+            }
+
+            if (subgroup_details$desc) {
+              subgroup_expr <- rlang::expr(dplyr::desc(
+                !!dplyr::sym(subgroup_details$field)
+              ))
+            } else {
+              subgroup_expr <- rlang::expr(!!dplyr::sym(subgroup_details$field))
+            }
+
+            if (segment_details$desc) {
+              segment_expr <- rlang::expr(dplyr::desc(
+                !!dplyr::sym(segment_details$field)
+              ))
+            } else {
+              segment_expr <- rlang::expr(!!dplyr::sym(segment_details$field))
+            }
+
             loc$segments_df <- loc$segments_df_unsorted %>%
-              dplyr::arrange(
-                !!dplyr::sym(doc_sort_field),
-                !!dplyr::sym(actual_sort_field),
-                segment_start
-              ) # Always ascending for natural document order
+              dplyr::arrange(!!group_expr, !!subgroup_expr, !!segment_expr)
           }
         }
       }
