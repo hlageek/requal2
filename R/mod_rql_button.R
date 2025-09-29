@@ -13,7 +13,8 @@ mod_rql_button_ui <- function(id, label, icon, inputId = NULL) {
     shinyWidgets::dropdown(
       uiOutput(ns("rql_button")),
       label = NULL,
-      style = "material-circle",
+
+      style = "material-flat",
       tooltip = shinyWidgets::tooltipOptions(
         placement = "right",
         title = label,

@@ -11,6 +11,12 @@
   to {color: red;}
 }
 
+.bttn-material-flat {
+  width: 45px;
+  height: 39px;
+  border-radius: 5px;
+}
+
 .custom_label {
   color: black !important;
 }
